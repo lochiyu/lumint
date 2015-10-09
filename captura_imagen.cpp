@@ -1,11 +1,14 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgcodecs.hpp"
 #include <RtMidi.h>
+#include "opencv2/opencv.hpp"
 #include <opencv2/imgproc/imgproc.hpp>
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/objdetect/objdetect.hpp"
 #include <unistd.h>
 #define SLEEP( milliseconds ) usleep( (unsigned long) (milliseconds * 1000.0) )
 #include <iostream>
-#include "lumint2.hpp"
+
 
 using namespace cv;
 using namespace std;
@@ -46,7 +49,6 @@ bool lumint;
 bool negro(Mat roi);
 void Threshold_Demo( int, void* );
 void draw_lines(double dWidth, double dHeight);
-int play(void);
 bool chooseMidiPort( RtMidiOut *rtmidi );
 
 void MyLine( Mat img, Point start, Point end ){
@@ -70,7 +72,6 @@ int main(int argc, char* argv[]){
 			cout<<argv[1]<<" activated"<<endl;
 		}
 	}
-	play();
 	
 	
 	//preparar la plantilla
@@ -90,16 +91,16 @@ int main(int argc, char* argv[]){
 	proj = Mat(400,720, CV_64F, cvScalar(0.));
 
 	
-    VideoCapture cap(0); // open the video camera no. 0
+	VideoCapture cap(0); // open the video camera no. 0
 
-    if (!cap.isOpened())  // if not success, exit program
-    {
-        cout << "Cannot open the video cam" << endl;
-        return -1;
-    }
+	if (!cap.isOpened())  // if not success, exit program
+	{
+	cout << "Cannot open the video cam" << endl;
+	return -1;
+	}
 
-    double dWidth = cap.get(CV_CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
-    double dHeight = cap.get(CV_CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
+	double dWidth = cap.get(CV_CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
+	double dHeight = cap.get(CV_CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
 
 	h2_y=int(dHeight)-1;
 	v2_x=int(dWidth)-1;
@@ -337,128 +338,6 @@ void Threshold_Demo( int, void* ){
   imshow( window_name, dst );
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int play(void)
-{
-    RtMidiOut *midiout = 0;
-  std::vector<unsigned char> message;
 
-  // RtMidiOut constructor
-  try {
-    midiout = new RtMidiOut();
-  }
-  catch ( RtMidiError &error ) {
-    error.printMessage();
-    exit( EXIT_FAILURE );
-  }
 
-  // Call function to select port.
-  try {
-    if ( chooseMidiPort( midiout ) == false ) goto cleanup;
-  }
-  catch ( RtMidiError &error ) {
-    error.printMessage();
-    goto cleanup;
-  }
-
-  // Send out a series of MIDI messages.
-cout<<"MIDI"<<endl;
-int hola;
-cin>>hola;
-  // Program change: 192, 5
-  message.push_back( 192 );
-  message.push_back( 5 );
-  midiout->sendMessage( &message );
-
-  SLEEP( 500 );
-
-  message[0] = 0xF1;
-  message[1] = 60;
-  midiout->sendMessage( &message );
-
-  // Control Change: 176, 7, 100 (volume)
-  message[0] = 176;
-  message[1] = 7;
-  message.push_back( 100 );
-  midiout->sendMessage( &message );
-
-  // Note On: 144, 64, 90
-  message[0] = 144;
-  message[1] = 64;
-  message[2] = 90;
-  midiout->sendMessage( &message );
-
-  SLEEP( 500 );
-
-  // Note Off: 128, 64, 40
-  message[0] = 128;
-  message[1] = 64;
-  message[2] = 40;
-  midiout->sendMessage( &message );
-
-  SLEEP( 500 );
-
-  // Control Change: 176, 7, 40
-  message[0] = 176;
-  message[1] = 7;
-  message[2] = 40;
-  midiout->sendMessage( &message );
-
-  SLEEP( 500 );
-
-  // Sysex: 240, 67, 4, 3, 2, 247
-  message[0] = 240;
-  message[1] = 67;
-  message[2] = 4;
-  message.push_back( 3 );
-  message.push_back( 2 );
-  message.push_back( 247 );
-  midiout->sendMessage( &message );
-
-return 0;
-  // Clean up
- cleanup:
-  delete midiout;
-
-  return 0;
-
-}
-
-bool chooseMidiPort( RtMidiOut *rtmidi )
-{
-  std::cout << "\nWould you like to open a virtual output port? [y/N] ";
-
-  std::string keyHit;
-  std::getline( std::cin, keyHit );
-  if ( keyHit == "y" ) {
-    rtmidi->openVirtualPort();
-    return true;
-  }
-
-  std::string portName;
-  unsigned int i = 0, nPorts = rtmidi->getPortCount();
-  if ( nPorts == 0 ) {
-    std::cout << "No output ports available!" << std::endl;
-    return false;
-  }
-
-  if ( nPorts == 1 ) {
-    std::cout << "\nOpening " << rtmidi->getPortName() << std::endl;
-  }
-  else {
-    for ( i=0; i<nPorts; i++ ) {
-      portName = rtmidi->getPortName(i);
-      std::cout << "  Output port #" << i << ": " << portName << '\n';
-    }
-
-    do {
-      std::cout << "\nChoose a port number: ";
-      std::cin >> i;
-    } while ( i >= nPorts );
-  }
-
-  std::cout << "\n";
-  rtmidi->openPort( i );
-
-  return true;
-}
 

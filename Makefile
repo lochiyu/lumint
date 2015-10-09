@@ -1,6 +1,4 @@
 all:
-	g++ captura_imagen.cpp -o lumint -lopencv_core -lopencv_imgproc -lopencv_objdetect -lopencv_highgui `sdl2-config --cflags --libs` -w -lrtmidi 
+	g++ captura_imagen.cpp -o lumint -lopencv_core -lopencv_imgproc -lopencv_objdetect -lopencv_highgui -lopencv_imgcodecs -w -lopencv_videoio
 	
-gen:	lumint2.cpp
-	g++ lumint2.cpp -o sonidos `sdl2-config --cflags --libs`
 	
