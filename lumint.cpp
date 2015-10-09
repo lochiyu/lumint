@@ -5,6 +5,7 @@
 #define SLEEP( milliseconds ) usleep( (unsigned long) (milliseconds * 1000.0) )
 #include <iostream>
 
+RtMidiOut *midiout;
 
 using namespace cv;
 using namespace std;
@@ -47,6 +48,8 @@ bool negro(Mat roi);
 void Threshold_Demo( int, void* );
 void draw_lines(double dWidth, double dHeight);
 bool chooseMidiPort( RtMidiOut *rtmidi );
+void init_midi();
+void play();
 
 void MyLine( Mat img, Point start, Point end ){
   int thickness = 2;
@@ -62,6 +65,9 @@ void MyLine( Mat img, Point start, Point end ){
 
 int main(int argc, char* argv[]){
 	
+init_midi();
+play();
+
 	int option=0;
 	if (argc>1){
 		if (strcmp(argv[1],"webcam")==0){ // de lo contrario es pintar
@@ -336,5 +342,48 @@ void Threshold_Demo( int, void* ){
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  std::vector<unsigned char> message;
 
+void init_midi()
+{
+  midiout = new RtMidiOut();
+  // Check available ports.
+  unsigned int nPorts = midiout->getPortCount();
+  if ( nPorts == 0 ) {
+    std::cout << "No ports available!\n";
+    goto cleanup;
+  }
+  cout<<"sending messages"<<endl;
+  // Open first available port.
+  midiout->openPort( 0 );
+  return;
+ cleanup:
+  delete midiout;
+}
 
+void play(){
+  // Send out a series of MIDI messages.
+  // Program change: 192, 5
+  message.push_back( 192 );
+  message.push_back( 5 );
+  midiout->sendMessage( &message );
+  // Control Change: 176, 7, 100 (volume)
+  message[0] = 176;
+  message[1] = 7;
+  message.push_back( 127 );
+  midiout->sendMessage( &message );
+  // Note On: 144, 64, 90
+  message[0] = 144;
+  message[1] = 64;
+  message[2] = 90;
+  midiout->sendMessage( &message );
+  sleep(5); // Platform-dependent ... see example in tests directory.
+  // Note Off: 128, 64, 40
+  message[0] = 128;
+  message[1] = 64;
+  message[2] = 40;
+  midiout->sendMessage( &message );
+  // Clean up
+ cleanup:
+  delete midiout;
+}

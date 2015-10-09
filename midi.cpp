@@ -4,7 +4,7 @@
 #include "RtMidi.h"
 #include <unistd.h>
 using namespace std;
-int main()
+int m()
 {
   std::vector<unsigned char> message;
   RtMidiOut *midiout = new RtMidiOut();
