@@ -1,10 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-#include "opencv2/imgcodecs.hpp"
 #include <RtMidi.h>
 #include "opencv2/opencv.hpp"
-#include <opencv2/imgproc/imgproc.hpp>
-#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/objdetect/objdetect.hpp"
 #include <unistd.h>
 #define SLEEP( milliseconds ) usleep( (unsigned long) (milliseconds * 1000.0) )
 #include <iostream>
@@ -43,8 +39,9 @@ Mat templ2; //mancha negra para el lumint
 Mat result; //imagen con la mancha procesada
 Mat proj; //imagen a proyectar en el edificio
 Mat comparar;
+int camara=0; //default es la camara de la compu
 
-bool lumint;
+bool lumint=true;
 
 bool negro(Mat roi);
 void Threshold_Demo( int, void* );
@@ -67,8 +64,8 @@ int main(int argc, char* argv[]){
 	
 	int option=0;
 	if (argc>1){
-		if (strcmp(argv[1],"lumint")==0){ // de lo contrario es pintar
-			lumint=true;
+		if (strcmp(argv[1],"webcam")==0){ // de lo contrario es pintar
+			camara=1;
 			cout<<argv[1]<<" activated"<<endl;
 		}
 	}
@@ -91,7 +88,7 @@ int main(int argc, char* argv[]){
 	proj = Mat(400,720, CV_64F, cvScalar(0.));
 
 	
-	VideoCapture cap(0); // open the video camera no. 0
+	VideoCapture cap(camara); // open the video camera no. 0
 
 	if (!cap.isOpened())  // if not success, exit program
 	{
