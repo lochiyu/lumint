@@ -1,4 +1,7 @@
+CFLAGS = `pkg-config --cflags opencv`
+LIBS = `pkg-config --libs opencv`
+
 all:
-	g++ captura_imagen.cpp -o lumint -lopencv_core -lopencv_imgproc -lopencv_objdetect -lopencv_highgui -lopencv_imgcodecs -w -lopencv_videoio
-	
+	g++ lumint.cpp -o lumint $(CFLAGS) $(LIBS) -w
+
 	
