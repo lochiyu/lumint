@@ -23,6 +23,7 @@ int h2_y=400;
 int v1_x=0;
 int v2_x=400;
 int H,W;
+int Hcropped, Wcropped;
 
 char* trackbar_type = "Type: \n 0: Binary \n 1: Binary Inverted \n 2: Truncate \n 3: To Zero \n 4: To Zero Inverted";
 char* trackbar_value = "Value";
@@ -132,8 +133,8 @@ int main(int argc, char* argv[]){
 			
 			matchLoc = minLoc;
 			Size s = cropped.size();
-			H = s.height;
-			W = s.width;
+			Hcropped = s.height;
+			Wcropped = s.width;
 			
 			s = proj.size();
 			H = s.height;
@@ -143,6 +144,7 @@ int main(int argc, char* argv[]){
 			
 			imshow("template encontrado", roi);
 			if (negro(roi)){ //encontré la mancha, mandar coordenada
+				cout<<Wcropped<<" ";
 				cout<<"detected:"<<matchLoc.x<<","<<matchLoc.y<<endl;
 			}
 			
@@ -356,7 +358,7 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 			cout<<W<<","<<H<<endl;
 			break;
 		case 27:
-			cout << "esc key is pressed by user" << endl;
+			cout << "Se apretó el ESC, saliendo del programa" << endl;
 			bandera=true;
 			break;
 
