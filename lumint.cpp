@@ -43,10 +43,14 @@ void draw_lines(double dWidth, double dHeight);
 //relacionado con MIDI
 RtMidiOut *midiout;
 void init_midi();
-void play();
+void play(int nota);
+void callar(int nota);
 std::vector<unsigned char> message;
 int semitonos=8;//en los que se va a dividir
 void dibujar_semitonos(int numero, int ancho, int alto);
+void tocar_nota(int x, int ancho);
+int notas_midi[8]={88,80,82,83,85,87,89,80};//escala inicial por defecto
+int nota_actual;
 //fin relacionado con MIDI
 
 //relacionado con openCV
@@ -59,7 +63,6 @@ void leer_teclas(int tecla,bool &bandera, double &dWidth, double &dHeight);
 int main(int argc, char* argv[]){
 	
 	init_midi();
-	play();
 
 	if (argc>1){
 		if (strcmp(argv[1],"webcam")==0){ // de lo contrario es pintar
@@ -137,6 +140,7 @@ int main(int argc, char* argv[]){
 			Size s = cropped.size();
 			Hcropped = s.height;
 			Wcropped = s.width;
+			//dibujar las líneas para mostrar las fronteras de los tonos discretos
 			dibujar_semitonos(semitonos,Wcropped,Hcropped);
 
 			s = proj.size();
@@ -147,8 +151,11 @@ int main(int argc, char* argv[]){
 			
 			imshow("template encontrado", roi);
 			if (negro(roi)){ //encontré la mancha, mandar coordenada
-				cout<<Wcropped<<" ";
-				cout<<"detected:"<<matchLoc.x<<","<<matchLoc.y<<endl;
+				//cout<<Wcropped<<" ";
+				//cout<<"detected:"<<matchLoc.x<<","<<matchLoc.y<<endl;
+				tocar_nota(matchLoc.x,Wcropped);
+			}else{ //no se encontro nada, callar
+				callar(notas_midi[nota_actual]);
 			}
 			
 			rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
@@ -160,6 +167,8 @@ int main(int argc, char* argv[]){
 
 		imshow("edificio", proj);
 	}//end while
+	for (int i=0;i<semitonos;i++){ callar(notas_midi[i]);}
+	delete midiout;
 	return 0;
 
 }//end main
@@ -216,6 +225,7 @@ void dibujar_semitonos(int numero, int ancho, int alto){
 		p1=Point(x,0);
 		p2=Point(x,alto);
 		MyLine(cropped,p1,p2);
+		x+=2;
 	}
 }
 
@@ -259,21 +269,22 @@ void init_midi()
   delete midiout;
 }
 
-void play(){
+void play(int nota){
  // Note On: 144, 64, 90
   message[0] = 144;
-  message[1] = 64;
+  message[1] = nota;
   message[2] = 90;
   midiout->sendMessage( &message );
-  sleep(5); // Platform-dependent ... see example in tests directory.
+	cout<<"tocando la nota "<<nota<<"  "<<endl;
+}
+
+void callar(int nota){
   // Note Off: 128, 64, 40
   message[0] = 128;
-  message[1] = 64;
+  message[1] = nota;
   message[2] = 40;
   midiout->sendMessage( &message );
-  // Clean up
- cleanup:
-  delete midiout;
+	cout<<"callando la nota "<<nota<<"  "<<endl;
 }
 
 void MyLine( Mat img, Point start, Point end ){
@@ -376,4 +387,17 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 			break;
 
 	}//end switch
+}
+void tocar_nota(int x, int ancho){
+	//primero determinar el número de división que corresponde, tomando en cuenta la variable numero
+	int ancho_nota=ancho/semitonos;
+	int num_nota=x/ancho_nota;
+	//se inicia con la nota 0 y termina en semitonos-1
+	//cout<<"--"<<num_nota<<"--";
+	//tocar la nota
+	if (nota_actual!=num_nota){
+		callar(notas_midi[nota_actual]);
+		play(notas_midi[num_nota]);
+		nota_actual=num_nota;
+	}
 }
