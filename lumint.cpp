@@ -352,7 +352,7 @@ void init_midi()
   message[1] = 7;
   message.push_back( 127 );
   midiout->sendMessage( &message );
-   return;
+  return;
  cleanup:
   delete midiout;
 }
