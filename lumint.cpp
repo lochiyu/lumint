@@ -45,6 +45,8 @@ RtMidiOut *midiout;
 void init_midi();
 void play();
 std::vector<unsigned char> message;
+int semitonos=8;//en los que se va a dividir
+void dibujar_semitonos(int numero, int ancho, int alto);
 //fin relacionado con MIDI
 
 //relacionado con openCV
@@ -135,7 +137,8 @@ int main(int argc, char* argv[]){
 			Size s = cropped.size();
 			Hcropped = s.height;
 			Wcropped = s.width;
-			
+			dibujar_semitonos(semitonos,Wcropped,Hcropped);
+
 			s = proj.size();
 			H = s.height;
 			W = s.width;
@@ -204,6 +207,16 @@ void draw_lines(double dWidth, double dHeight){
 	p2 = Point (v2_x,dHeight);
 	MyLine(gray_image,p1,p2);
 	
+}
+
+void dibujar_semitonos(int numero, int ancho, int alto){
+	int x;
+	Point p1,p2;
+	for (x=0;x<ancho;x+=ancho/numero){
+		p1=Point(x,0);
+		p2=Point(x,alto);
+		MyLine(cropped,p1,p2);
+	}
 }
 
 void Threshold_Demo( int, void* ){
