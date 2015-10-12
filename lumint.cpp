@@ -146,7 +146,6 @@ int main(int argc, char* argv[]){
 			s = proj.size();
 			H = s.height;
 			W = s.width;
-			//line(proj,Point(100,H-50),Point(W-99,H-50),Scalar(255,255,255),3,8,0);
 			Mat roi(cropped, Rect(matchLoc.x , matchLoc.y, templ2.cols , templ2.rows));
 			
 			imshow("template encontrado", roi);
@@ -230,60 +229,58 @@ void dibujar_semitonos(int numero, int ancho, int alto){
 }
 
 void Threshold_Demo( int, void* ){
-  /* 0: Binary
-     1: Binary Inverted
-     2: Threshold Truncated
-     3: Threshold to Zero
-     4: Threshold to Zero Inverted
-   */
-  threshold( gray_image, dst, threshold_value, max_BINARY_value,threshold_type );
-  imshow( window_name, dst );
+	  /* 0: Binary
+	     1: Binary Inverted
+	     2: Threshold Truncated
+	     3: Threshold to Zero
+	     4: Threshold to Zero Inverted
+	   */
+	  threshold( gray_image, dst, threshold_value, max_BINARY_value,threshold_type );
+	  imshow( window_name, dst );
 }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void init_midi()
 {
-  midiout = new RtMidiOut();
-  // Check available ports.
-  unsigned int nPorts = midiout->getPortCount();
-  if ( nPorts == 0 ) {
-    std::cout << "No ports available!\n";
-    goto cleanup;
-  }
-  cout<<"sending messages"<<endl;
-  // Open first available port.
-  midiout->openPort( 0 );
-  // Send out a series of MIDI messages.
-  // Program change: 192, 5
-  message.push_back( 192 );
-  message.push_back( 5 );
-  midiout->sendMessage( &message );
-  // Control Change: 176, 7, 100 (volume)
-  message[0] = 176;
-  message[1] = 7;
-  message.push_back( 127 );
-  midiout->sendMessage( &message );
-  return;
- cleanup:
-  delete midiout;
+	  midiout = new RtMidiOut();
+	  // Check available ports.
+	  unsigned int nPorts = midiout->getPortCount();
+	  if ( nPorts == 0 ) {
+	    std::cout << "No ports available!\n";
+	    goto cleanup;
+	  }
+	  cout<<"sending messages"<<endl;
+	  // Open first available port.
+	  midiout->openPort( 0 );
+	  // Send out a series of MIDI messages.
+	  // Program change: 192, 5
+	  message.push_back( 192 );
+	  message.push_back( 5 );
+	  midiout->sendMessage( &message );
+	  // Control Change: 176, 7, 100 (volume)
+	  message[0] = 176;
+	  message[1] = 7;
+	  message.push_back( 127 );
+	  midiout->sendMessage( &message );
+	  return;
+	 cleanup:
+	  delete midiout;
 }
 
 void play(int nota){
- // Note On: 144, 64, 90
-  message[0] = 144;
-  message[1] = nota;
-  message[2] = 90;
-  midiout->sendMessage( &message );
+	message[0] = 144;//encender nota en canal 1
+	message[1] = nota;
+	message[2] = 90;
+	midiout->sendMessage( &message );
 	cout<<"tocando la nota "<<nota<<"  "<<endl;
 }
 
 void callar(int nota){
-  // Note Off: 128, 64, 40
-  message[0] = 128;
-  message[1] = nota;
-  message[2] = 40;
-  midiout->sendMessage( &message );
+  	message[0] = 128;//apagar nota en canal 1
+  	message[1] = nota;
+  	message[2] = 40;
+  	midiout->sendMessage( &message );
 	cout<<"callando la nota "<<nota<<"  "<<endl;
 }
 
@@ -373,11 +370,11 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 			if (v2_x>int(dWidth)) v2_x=int(dWidth);
 			cout<<"v2_x="<<v2_x<<",h2_y="<<h2_y<<endl;
 			break; 
-		case 99:
+		case 99: //tecla c
 			cout << "Limpiando pantalla" << endl;
 			proj = Mat(400,720, CV_64F, cvScalar(0.));
 			break;
-		case 112:
+		case 112: //tecla p
 			cout << "tamaño del crop" << endl;
 			cout<<W<<","<<H<<endl;
 			break;
