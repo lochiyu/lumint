@@ -56,6 +56,8 @@ int nota_actual;
 //relacionado con openCV
 void MyLine( Mat img, Point start, Point end );
 void inicializar_pantallas(void);
+void scroll(void);
+void draw_note(int num_nota);
 //fin relacionado con openCV
 
 void leer_teclas(int tecla,bool &bandera, double &dWidth, double &dHeight);
@@ -159,7 +161,8 @@ int main(int argc, char* argv[]){
 			
 			rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
 		}
-		//PRINT COORDINATES
+		//scroll
+		scroll();
 		
 		//Image to projector
 		imshow("cortado", cropped);
@@ -171,7 +174,11 @@ int main(int argc, char* argv[]){
 	return 0;
 
 }//end main
-
+void scroll(){
+	proj(Rect(0,3,proj.cols,proj.rows-3)).copyTo(proj(Rect(0,0,proj.cols,proj.rows-3)));
+	//y borro la última línea
+	line(proj, Point(0,proj.rows), Point(proj.cols,proj.rows), Scalar(0,0,0 ),2,8);
+}
 bool negro(Mat roi){
 	float threshold=0.8; //70% negro es suficiente
 	Size s=roi.size();
@@ -371,8 +378,8 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 			cout<<"v2_x="<<v2_x<<",h2_y="<<h2_y<<endl;
 			break; 
 		case 99: //tecla c
-			cout << "Limpiando pantalla" << endl;
-			proj = Mat(400,720, CV_64F, cvScalar(0.));
+			proj = Mat(400,720, CV_64F, cvScalar(0.)); //limpia pantalla
+			MyLine(proj,Point(0,0),Point(proj.cols,proj.rows));
 			break;
 		case 112: //tecla p
 			cout << "tamaño del crop" << endl;
@@ -390,11 +397,17 @@ void tocar_nota(int x, int ancho){
 	int ancho_nota=ancho/semitonos;
 	int num_nota=x/ancho_nota;
 	//se inicia con la nota 0 y termina en semitonos-1
-	//cout<<"--"<<num_nota<<"--";
 	//tocar la nota
 	if (nota_actual!=num_nota){
+		//cout<<"--"<<x<<","<<num_nota<<"--";
 		callar(notas_midi[nota_actual]);
 		play(notas_midi[num_nota]);
+		draw_note(num_nota);
 		nota_actual=num_nota;
 	}
+}
+void draw_note(int num_nota){
+	int ancho_nota=proj.cols/semitonos;
+	cout<<"  "<<proj.cols<<"  ";
+	MyLine(proj,Point(ancho_nota*num_nota,proj.rows),Point(ancho_nota*(num_nota+1),proj.rows));
 }
