@@ -161,6 +161,7 @@ int main(int argc, char* argv[]){
 				tocar_nota(matchLoc.x,Wcropped);
 			}else{ //no se encontro nada, callar
 				callar(notas_midi[nota_actual]);
+				nota_actual=-1;
 			}
 			
 			rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
@@ -184,7 +185,7 @@ void scroll(){
 	line(proj, Point(0,proj.rows), Point(proj.cols,proj.rows), Scalar(0,0,0 ),2,8);
 }
 bool negro(Mat roi){
-	float threshold=0.8; //70% negro es suficiente
+	float threshold=0.96; //70% negro es suficiente
 	Size s=roi.size();
 	float numero=0;
 	for (int i=0;i<s.height;i++){
@@ -292,7 +293,7 @@ void callar(int nota){
   	message[1] = nota;
   	message[2] = 40;
   	midiout->sendMessage( &message );
-	cout<<"callando la nota "<<nota<<"  "<<endl;
+//	cout<<"callando la nota "<<nota<<"  "<<endl;
 }
 
 void MyLine( Mat img, Point start, Point end ){
@@ -323,19 +324,19 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 	switch(tecla){
 		//teclas verticales
 		case 113:
-			cout << "q" << endl;
+			//cout << "q" << endl;
 			//sube el h1, osea, le resta 1 pixel
 			h1_y-=5;
 			if (h1_y<0) h1_y=0;
-			cout<<"v1_x="<<v1_x<<",h1_y="<<h1_y<<endl;
+			//cout<<"v1_x="<<v1_x<<",h1_y="<<h1_y<<endl;
 			break; 
 		case 97:
-			cout << "a" << endl;
+			//cout << "a" << endl;
 			//baja el h1, osea, le suma 1 pixel
 			h1_y+=5;
 			if (h1_y>int(dHeight)) h1_y=int(dHeight);
 			if (h2_y-h1_y<templ2.size().height) h1_y-=5;
-			cout<<"v1_x="<<v1_x<<",h1_y="<<h1_y<<endl;
+			//cout<<"v1_x="<<v1_x<<",h1_y="<<h1_y<<endl;
 			break; 
 		case 119:
 			cout << "w" << endl;
@@ -343,43 +344,43 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 			h2_y-=5;
 			if (h2_y<0) h2_y=0;
 			if (h2_y-h1_y<templ2.size().height) h2_y+=5;
-			cout<<"v2_x="<<v2_x<<",h2_y="<<h2_y<<endl;
+			//cout<<"v2_x="<<v2_x<<",h2_y="<<h2_y<<endl;
 			break; 
 		case 115:
-			cout << "s" << endl;
+			//cout << "s" << endl;
 			//baja el h2, osea, le suma 1 pixel
 			h2_y+=5;
 			if (h2_y>int(dHeight)) h2_y=int(dHeight);
-			cout<<"v2_x="<<v2_x<<",h2_y="<<h2_y<<endl;
+			//cout<<"v2_x="<<v2_x<<",h2_y="<<h2_y<<endl;
 			break; 
 		//teclas horizontales
 		case 101:
-			cout << "e" << endl;
+			//cout << "e" << endl;
 			//mueve a la izquierda el v1, osea, le resta 1 pixel
 			v1_x-=5;
 			if (v1_x<0) v1_x=0;
-			cout<<"v1_x="<<v1_x<<",h1_y="<<h1_y<<endl;
+			//cout<<"v1_x="<<v1_x<<",h1_y="<<h1_y<<endl;
 			break; 
 		case 114:
-			cout << "r" << endl;
+			//cout << "r" << endl;
 			//mueve a la derecha el v1, osea, le suma 1 pixel
 			v1_x+=5;
 			if (v1_x>int(dWidth)) v1_x=int(dWidth);
-			cout<<"v1_x="<<v1_x<<",h1_y="<<h1_y<<endl;
+			//cout<<"v1_x="<<v1_x<<",h1_y="<<h1_y<<endl;
 			break; 
 		case 100:
-			cout << "d" << endl;
+			//cout << "d" << endl;
 			//mueve a la izquierda el v2, osea, le resta 1 pixel
 			v2_x-=5;
 			if (v2_x<0) v2_x=0;
-			cout<<"v2_x="<<v2_x<<",h2_y="<<h2_y<<endl;
+			//cout<<"v2_x="<<v2_x<<",h2_y="<<h2_y<<endl;
 			break; 
 		case 102:
-			cout << "f" << endl;
+			//cout << "f" << endl;
 			//mueve a la derecha el v2, osea, le suma 1 pixel
 			v2_x+=5;
 			if (v2_x>int(dWidth)) v2_x=int(dWidth);
-			cout<<"v2_x="<<v2_x<<",h2_y="<<h2_y<<endl;
+			//cout<<"v2_x="<<v2_x<<",h2_y="<<h2_y<<endl;
 			break; 
 		case 99: //tecla c
 			proj = Mat(400,720, CV_64F, cvScalar(0.)); //limpia pantalla
@@ -420,7 +421,7 @@ void tocar_nota(int x, int ancho){
 }
 void draw_note(int num_nota){
 	int ancho_nota=proj.cols/semitonos;
-	cout<<"  "<<proj.cols<<"  ";
+	//cout<<"  "<<proj.cols<<"  ";
 	MyLine(proj,Point(ancho_nota*num_nota,proj.rows),Point(ancho_nota*(num_nota+1),proj.rows));
 }
 void aumentar_octava(){
