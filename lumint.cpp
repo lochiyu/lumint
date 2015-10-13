@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <iostream>
 #define SLEEP( milliseconds ) usleep( (unsigned long) (milliseconds * 1000.0) )
+#define N_NOTAS 8
 
 using namespace cv;
 using namespace std;
@@ -49,8 +50,11 @@ std::vector<unsigned char> message;
 int semitonos=8;//en los que se va a dividir
 void dibujar_semitonos(int numero, int ancho, int alto);
 void tocar_nota(int x, int ancho);
-int notas_midi[8]={88,80,82,83,85,87,89,80};//escala inicial por defecto
+int notas_midi[N_NOTAS]={88,80,82,83,85,87,89,80};//escala inicial por defecto
 int nota_actual;
+void aumentar_octava();
+void disminuir_octava();
+void callar_todo();
 //fin relacionado con MIDI
 
 //relacionado con openCV
@@ -169,7 +173,7 @@ int main(int argc, char* argv[]){
 
 		imshow("edificio", proj);
 	}//end while
-	for (int i=0;i<semitonos;i++){ callar(notas_midi[i]);}
+	callar_todo();
 	delete midiout;
 	return 0;
 
@@ -382,12 +386,20 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 			MyLine(proj,Point(0,0),Point(proj.cols,proj.rows));
 			break;
 		case 112: //tecla p
-			cout << "tamaño del crop" << endl;
-			cout<<W<<","<<H<<endl;
+			//cout << "tamaño del crop" << endl;
+			//cout<<W<<","<<H<<endl;
 			break;
 		case 27:
 			cout << "Se apretó el ESC, saliendo del programa" << endl;
 			bandera=true;
+			break;
+		case 43: //tecla +
+			aumentar_octava();
+			cout<< "Incrementando una octava"<< endl;
+			break;
+		case 45: //tecla -
+			disminuir_octava();
+			cout<< "Decrementando una octava"<< endl;
 			break;
 
 	}//end switch
@@ -410,4 +422,23 @@ void draw_note(int num_nota){
 	int ancho_nota=proj.cols/semitonos;
 	cout<<"  "<<proj.cols<<"  ";
 	MyLine(proj,Point(ancho_nota*num_nota,proj.rows),Point(ancho_nota*(num_nota+1),proj.rows));
+}
+void aumentar_octava(){
+	callar_todo();
+	int i;
+	if (notas_midi[1]>109) return; //máxima octava
+	for (i=0;i<N_NOTAS;i++){
+		notas_midi[i]+=12;  //aumente una octava
+	}
+}
+void disminuir_octava(){
+	callar_todo();
+	int i;
+	if (notas_midi[1]<12) return; //mínima octava
+	for (i=0;i<N_NOTAS;i++){
+		notas_midi[i]-=12;  //disminuya una octava
+	}
+}
+void callar_todo(){
+	for (int i=0;i<semitonos;i++){ callar(notas_midi[i]);}
 }
