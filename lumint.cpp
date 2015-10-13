@@ -43,6 +43,7 @@ void draw_lines(double dWidth, double dHeight);
 
 //relacionado con MIDI
 RtMidiOut *midiout;
+bool cont=false;
 void init_midi();
 void play(int nota);
 void callar(int nota);
@@ -50,6 +51,7 @@ std::vector<unsigned char> message;
 int semitonos=8;//en los que se va a dividir
 void dibujar_semitonos(int numero, int ancho, int alto);
 void tocar_nota(int x, int ancho);
+void continuo(int x, int ancho);
 int notas_midi[N_NOTAS]={88,80,82,83,85,87,89,80};//escala inicial por defecto
 int nota_actual;
 void aumentar_octava();
@@ -73,13 +75,16 @@ void leer_teclas(int tecla,bool &bandera, double &dWidth, double &dHeight);
 int main(int argc, char* argv[]){
 	
 	init_midi();
-
-	if (argc>1){
-		if (strcmp(argv[1],"webcam")==0){ // de lo contrario es pintar
+	for (int j=0;j<argc;j++){
+		if (strcmp(argv[j],"webcam")==0){ // de lo contrario es pintar
 			camara=1;//usaremos la webcam, siempre es bueno tener dos opciones
-			cout<<argv[1]<<" activated"<<endl;
+			cout<<argv[j]<<" activada"<<endl;
 		}
-	}
+		if (strcmp(argv[j],"continuo")==0){ // de lo contrario es pintar
+			cont=true;//usaremos el modo continuo
+			cout<<"modo continuo activado"<<endl;
+		}
+	}//end for
 	inicializar_pantallas();//ventanas de openCV
 
 	VideoCapture cap(camara); // open the video camera no. 0
@@ -266,7 +271,7 @@ void init_midi()
 	    std::cout << "No ports available!\n";
 	    goto cleanup;
 	  }
-	  cout<<"sending messages"<<endl;
+	  cout<<"Inicializando puerto MIDI"<<endl;
 	  // Open first available port.
 	  midiout->openPort( 0 );
 	  // Send out a series of MIDI messages.
@@ -420,13 +425,15 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 	}//end switch
 }
 void tocar_nota(int x, int ancho){
+	//si es continuo, ejecutar otra cosa
+	continuo(x,ancho);
 	//primero determinar el número de división que corresponde, tomando en cuenta la variable numero
 	int ancho_nota=ancho/semitonos;
 	int num_nota=x/ancho_nota;
 	//se inicia con la nota 0 y termina en semitonos-1
 	//tocar la nota
 	if (nota_actual!=num_nota){
-		//cout<<"--"<<x<<","<<num_nota<<"--";
+		cout<<"--"<<x<<"--";
 		callar(notas_midi[nota_actual]);
 		play(notas_midi[num_nota]);
 		draw_note(num_nota);
@@ -510,4 +517,7 @@ string imprimir_nota(int nota_midi){
 void imprimir_escala_actual(){
 	system("clear");
 	cout<<"Escala en "<<imprimir_nota(notas_midi[0])<<" mayor"<<endl;
+}
+void continuo(int x, int ancho){
+
 }
