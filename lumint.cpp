@@ -55,6 +55,10 @@ int nota_actual;
 void aumentar_octava();
 void disminuir_octava();
 void callar_todo();
+void aumentar_escala();
+void disminuir_escala();
+string imprimir_nota(int nota_midi);
+void imprimir_escala_actual();
 //fin relacionado con MIDI
 
 //relacionado con openCV
@@ -402,7 +406,17 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 			disminuir_octava();
 			cout<< "Decrementando una octava"<< endl;
 			break;
-
+		case 109: //tecla m
+			aumentar_escala();
+			cout<< "Incrementando escala en un semitono"<<endl;
+			break;
+		case 110: //tecla n
+			disminuir_escala();
+			cout<< "Decrementando escala en un semitono"<<endl;
+			break;
+		case 32: //barra espaciadora
+			imprimir_escala_actual();
+			break;
 	}//end switch
 }
 void tocar_nota(int x, int ancho){
@@ -431,6 +445,7 @@ void aumentar_octava(){
 	for (i=0;i<N_NOTAS;i++){
 		notas_midi[i]+=12;  //aumente una octava
 	}
+	system("clear");
 }
 void disminuir_octava(){
 	callar_todo();
@@ -439,7 +454,60 @@ void disminuir_octava(){
 	for (i=0;i<N_NOTAS;i++){
 		notas_midi[i]-=12;  //disminuya una octava
 	}
+	system("clear");
 }
 void callar_todo(){
 	for (int i=0;i<semitonos;i++){ callar(notas_midi[i]);}
+}
+void aumentar_escala(){
+	system("clear");
+	if (notas_midi[0]!=127){
+		notas_midi[0]=notas_midi[0]+1; //aumento un semitono
+	}
+	cout<<"Escala en "<<imprimir_nota(notas_midi[0])<<" mayor"<<endl;
+	//incremento las demás según la primera
+	//escala mayor nada más
+	notas_midi[1]=notas_midi[0]+2;
+	notas_midi[2]=notas_midi[1]+2;
+	notas_midi[3]=notas_midi[2]+1;
+	notas_midi[4]=notas_midi[3]+2;
+	notas_midi[5]=notas_midi[4]+2;
+	notas_midi[6]=notas_midi[5]+2;
+	notas_midi[7]=notas_midi[6]+1;
+}
+void disminuir_escala(){
+	system("clear");
+	if (notas_midi[0]!=0){
+		notas_midi[0]=notas_midi[0]-1; //aumento un semitono
+	}
+	cout<<"Escala en "<<imprimir_nota(notas_midi[0])<<" mayor"<<endl;
+	//incremento las demás según la primera
+	//escala mayor nada más
+	notas_midi[1]=notas_midi[0]+2;
+	notas_midi[2]=notas_midi[1]+2;
+	notas_midi[3]=notas_midi[2]+1;
+	notas_midi[4]=notas_midi[3]+2;
+	notas_midi[5]=notas_midi[4]+2;
+	notas_midi[6]=notas_midi[5]+2;
+	notas_midi[7]=notas_midi[6]+1;
+}
+string imprimir_nota(int nota_midi){
+	switch(nota_midi%12){
+		case 0: return "C";
+		case 1: return "C#";
+		case 2: return "D";
+		case 3: return "D#";
+		case 4: return "E";
+		case 5: return "F";
+		case 6: return "F#";
+		case 7: return "G";
+		case 8: return "G#";
+		case 9: return "A";
+		case 10: return "A#";
+		case 11: return "B";
+	}//end switch
+}
+void imprimir_escala_actual(){
+	system("clear");
+	cout<<"Escala en "<<imprimir_nota(notas_midi[0])<<" mayor"<<endl;
 }
