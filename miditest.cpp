@@ -3,8 +3,11 @@
 #include <cstdlib>
 #include "RtMidi.h"
 #include <unistd.h>
+#include <iostream>
+#include "opencv2/opencv.hpp"
 using namespace std;
-int main()
+using namespace cv;
+int main() 
 {
   std::vector<unsigned char> message;
   RtMidiOut *midiout = new RtMidiOut();
@@ -25,14 +28,29 @@ int main()
   // Control Change: 176, 7, 100 (volume)
   message[0] = 176;
   message[1] = 7;
-  message.push_back( 127 );
+  message.push_back( 100 );
   midiout->sendMessage( &message );
   // Note On: 144, 64, 90
   message[0] = 144;
   message[1] = 64;
   message[2] = 90;
   midiout->sendMessage( &message );
-  sleep(5); // Platform-dependent ... see example in tests directory.
+sleep(1);
+  message[0] = 144;
+  message[1] = 64;
+  message[2] = 90;
+  midiout->sendMessage( &message );
+sleep(3);
+cout<<"inside"<<endl;
+	int bend;
+while(1){
+cin>>bend;
+if (!bend) break;
+			message[0] = 224;
+			message[1] = 0;
+			message[2] = bend;
+			midiout->sendMessage( &message );
+}
   // Note Off: 128, 64, 40
   message[0] = 128;
   message[1] = 64;

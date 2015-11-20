@@ -53,8 +53,7 @@ std::vector<unsigned char> message;
 int semitonos=8;//en los que se va a dividir
 void dibujar_semitonos(int numero, int ancho, int alto);
 void tocar_nota(int x, int ancho);
-void continuo(int x, int ancho, bool nuevo);
-int notas_midi[N_NOTAS]={88,80,82,83,85,87,89,80};//escala inicial por defecto
+int notas_midi[N_NOTAS]={78,79,80,81,82,83,84,85};//escala inicial por defecto
 int nota_actual;
 void aumentar_octava();
 void disminuir_octava();
@@ -63,13 +62,13 @@ void aumentar_escala();
 void disminuir_escala();
 string imprimir_nota(int nota_midi);
 void imprimir_escala_actual();
+void bend_range();
 //fin relacionado con MIDI
 
 //relacionado con openCV
 void MyLine( Mat img, Point start, Point end );
 void inicializar_pantallas(void);
 void scroll(void);
-void draw_note(int num_nota);
 //fin relacionado con openCV
 
 void leer_teclas(int tecla,bool &bandera, double &dWidth, double &dHeight);
@@ -82,10 +81,7 @@ int main(int argc, char* argv[]){
 			camara=1;//usaremos la webcam, siempre es bueno tener dos opciones
 			cout<<argv[j]<<" activada"<<endl;
 		}
-		if (strcmp(argv[j],"continuo")==0){ // de lo contrario es pintar
-			cont=true;//usaremos el modo continuo
-			cout<<"modo continuo activado"<<endl;
-		}
+		cont=true;
 	}//end for
 	inicializar_pantallas();//ventanas de openCV
 
@@ -169,13 +165,13 @@ int main(int argc, char* argv[]){
 			if (negro(roi)){ //encontré la mancha, mandar coordenada
 				//cout<<Wcropped<<" ";
 				//cout<<"detected:"<<matchLoc.x<<","<<matchLoc.y<<endl;
+				rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
 				tocar_nota(matchLoc.x,Wcropped);
 			}else{ //no se encontro nada, callar
 				callar(notas_midi[nota_actual]);
 				nota_actual=-1;
 			}
 			
-			rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
 		}
 		//scroll
 		scroll();
@@ -280,17 +276,10 @@ void init_midi()
 	  message[1] = 7;
 	  message.push_back( 127 );
 	  midiout->sendMessage( &message );
+	bend_range();
 	  return;
 	 cleanup:
 	  delete midiout;
-}
-
-void play(int nota){
-	message[0] = 144;//encender nota en canal 1
-	message[1] = nota;
-	message[2] = 90;
-	midiout->sendMessage( &message );
-	cout<<"tocando la nota "<<nota<<"  "<<endl;
 }
 
 void play_bend(int nota,int msb, int lsb, bool nueva){
@@ -299,18 +288,35 @@ void play_bend(int nota,int msb, int lsb, bool nueva){
 	message[0] = 144;
 	message[1] = nota;
 	message[2] = 90;
-	if (1){
+	if (nueva){
 		midiout->sendMessage( &message ); //solo tocar de nuevo si es nueva, de lo contrario, solo hacer el bend
 		cout<<" notabend nueva"<<endl;
 	}
 	//hacer nota en canal 1 con bend
-	message[0] = 224;
-	message[1] = lsb; //7 LSB
-	message[2] = msb; //7 MSB, recordar que 0x2000 es la nota pura sin bend
-	midiout->sendMessage( &message );
-	cout<<"tocando la nota con bend:"<<nota<<"  "<<msb<<":"<<lsb<<endl;
+	if (1){
+		message[0] = 224;
+		message[1] = lsb; //7 LSB
+		message[2] = msb; //7 MSB, recordar que 0x2000 es la nota pura sin bend
+		midiout->sendMessage( &message );
+		cout<<"tocando la nota con bend:"<<nota<<"  "<<msb<<":"<<lsb<<endl;
+	}
 }
-
+void bend_range(){
+  	message[0] = 176;
+  	message[1] = 101;
+  	message[2] = 0;
+  	message[3] = 176;
+  	message[4] = 100;
+  	message[5] = 0;
+  	message[6] = 176;
+  	message[7] = 6;
+  	message[8] = 15;
+  	message[9] = 176;
+  	message[10] = 38;
+  	message[11] = 0;
+  	message[5] = 0;
+  	midiout->sendMessage( &message );
+}
 void callar(int nota){
   	message[0] = 128;//apagar nota en canal 1
   	message[1] = nota;
@@ -441,50 +447,20 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 }
 void tocar_nota(int x, int ancho){
 	int ancho_nota=ancho/semitonos;
-	int num_nota=x/ancho_nota;
-	//si es continuo, ejecutar otra cosa
-	if (cont) {
-		//primero, ver si es la misma nota.  Si la es, revisar si cambio suficiente
-		float tol=(float)x-(float)xviejo;
-		tol=abs(tol)/xviejo;
-		cout<<num_nota<<","<<x<<"  dif="<<tol<<endl;
-		if (nota_actual!=num_nota){ 
-			//no es la misma nota
-			cout<<"nota nueva"<<endl;
-			callar(notas_midi[nota_actual]);
-			continuo(x,ancho,true);//true es que es una nota nueva
-			nota_actual=num_nota;
-			xviejo=x;
-		}else{
-			//es la misma nota, revisar si el bend cambió más que TOLERANCIA
-			float tol=(float)x-(float)xviejo;
-			tol=abs(tol)/xviejo;
-			if (tol>TOLERANCIA){
-				cout<<"bend   ";
-				callar(notas_midi[nota_actual]);
-				continuo(x,ancho,false);//es nota vieja, solo cambiar el bend
-				xviejo=x;
-			}else{
-				//la diferencia en x no es tanta, siga con la misma nota
-				//cout<<"misma nota"<<endl;
-			}
-		}
-	}else{ //es discreto
-		//tocar la nota
-		if (nota_actual!=num_nota){
-			//cout<<"--"<<x<<"--";
-			callar(notas_midi[nota_actual]);
-			play(notas_midi[num_nota]);
-			draw_note(num_nota);
-			nota_actual=num_nota;
-		}
-	}
+	int n_nota=x/ancho_nota;
+	int x_nota=x%ancho_nota;
+	bool nueva=(nota_actual!=n_nota);
+	int nota_vieja=nota_actual;
+	nota_actual=n_nota;
+	float delta=(float)x_nota/(float)ancho_nota-0.5;
+	//cout <<x<<":"<<n_nota<<":"<<delta<<endl;
+	//play_bend(nota_awishctual,(64+delta*40),0,nueva);
+	//if (nueva){callar(notas_midi[nota_vieja]);}
+	float d=(float)x/(float)ancho-0.5;
+	cout<<d<<endl;
+	play_bend(4,127*x/ancho,0,1);
 }
-void draw_note(int num_nota){
-	int ancho_nota=proj.cols/semitonos;
-	//cout<<"  "<<proj.cols<<"  ";
-	MyLine(proj,Point(ancho_nota*num_nota,proj.rows),Point(ancho_nota*(num_nota+1),proj.rows));
-}
+
 void aumentar_octava(){
 	callar_todo();
 	int i;
@@ -559,15 +535,4 @@ string imprimir_nota(int nota_midi){
 void imprimir_escala_actual(){
 	system("clear");
 	cout<<"Escala en "<<imprimir_nota(notas_midi[0])<<" mayor"<<endl;
-}
-void continuo(int x, int ancho, bool nueva){
-	int ancho_nota=ancho/semitonos;
-	int nota_central=x/ancho_nota;
-	int residuo=x%ancho_nota;
-	float porcentaje=(float) residuo/ (float) ancho_nota;
-	int bend=porcentaje*16384; //el bend toma 14 bits.  8192 es la nota pura
-	int lsb=bend%128;
-	int msb=bend/128;
-	//cout<<nota_central<<"="<<porcentaje<<"%"<<","<<bend<<"="<<msb<<"-"<<lsb<<endl;
-	play_bend(nota_central,msb,lsb,nueva);
 }

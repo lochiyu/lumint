@@ -5,7 +5,7 @@
 #include <iostream>
 #define SLEEP( milliseconds ) usleep( (unsigned long) (milliseconds * 1000.0) )
 #define N_NOTAS 8
-
+#define TOLERANCIA 0.001
 using namespace cv;
 using namespace std;
 int threshold_value = 0;
@@ -43,16 +43,18 @@ void draw_lines(double dWidth, double dHeight);
 
 //relacionado con MIDI
 RtMidiOut *midiout;
+int xviejo;
 bool cont=false;
 void init_midi();
 void play(int nota);
+void play_bend(int nota,int msb, int lsb, bool nueva);
 void callar(int nota);
 std::vector<unsigned char> message;
 int semitonos=8;//en los que se va a dividir
 void dibujar_semitonos(int numero, int ancho, int alto);
 void tocar_nota(int x, int ancho);
-void continuo(int x, int ancho);
-int notas_midi[N_NOTAS]={88,80,82,83,85,87,89,80};//escala inicial por defecto
+void continuo(int x, int ancho, bool nuevo);
+int notas_midi[N_NOTAS]={78,80,82,83,85,87,89,90};//escala inicial por defecto
 int nota_actual;
 void aumentar_octava();
 void disminuir_octava();
@@ -156,7 +158,7 @@ int main(int argc, char* argv[]){
 			Hcropped = s.height;
 			Wcropped = s.width;
 			//dibujar las líneas para mostrar las fronteras de los tonos discretos
-			dibujar_semitonos(semitonos,Wcropped,Hcropped);
+			if (!cont) dibujar_semitonos(semitonos,Wcropped,Hcropped);
 
 			s = proj.size();
 			H = s.height;
@@ -188,13 +190,14 @@ int main(int argc, char* argv[]){
 	return 0;
 
 }//end main
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
 void scroll(){
 	proj(Rect(0,3,proj.cols,proj.rows-3)).copyTo(proj(Rect(0,0,proj.cols,proj.rows-3)));
 	//y borro la última línea
 	line(proj, Point(0,proj.rows), Point(proj.cols,proj.rows), Scalar(0,0,0 ),2,8);
 }
 bool negro(Mat roi){
-	float threshold=0.96; //70% negro es suficiente
+	float threshold=0.96; //cuánto negro es suficiente
 	Size s=roi.size();
 	float numero=0;
 	for (int i=0;i<s.height;i++){
@@ -212,13 +215,7 @@ bool negro(Mat roi){
 }
 
 void draw_lines(double dWidth, double dHeight){
-	/*DIAGONAL
-	Point pt1 =Point (v1_x,h1_y);
-	Point pt2 =Point (v2_x,h2_y);
-	MyLine(gray_image,pt1,pt2);
-	*/
 	//INDIVIDUAL LINES
-	//4 lines
 	//horizontal 1
 	Point p1 = Point (0,h1_y);
 	Point p2 = Point (dWidth, h1_y);
@@ -259,7 +256,6 @@ void Threshold_Demo( int, void* ){
 	  threshold( gray_image, dst, threshold_value, max_BINARY_value,threshold_type );
 	  imshow( window_name, dst );
 }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void init_midi()
@@ -297,12 +293,30 @@ void play(int nota){
 	cout<<"tocando la nota "<<nota<<"  "<<endl;
 }
 
+void play_bend(int nota,int msb, int lsb, bool nueva){
+	//primero encender la nota en canal 1
+	nota=notas_midi[nota];
+	message[0] = 144;
+	message[1] = nota;
+	message[2] = 90;
+	if (1){
+		midiout->sendMessage( &message ); //solo tocar de nuevo si es nueva, de lo contrario, solo hacer el bend
+		cout<<" notabend nueva"<<endl;
+	}
+	//hacer nota en canal 1 con bend
+	message[0] = 224;
+	message[1] = lsb; //7 LSB
+	message[2] = msb; //7 MSB, recordar que 0x2000 es la nota pura sin bend
+	midiout->sendMessage( &message );
+	cout<<"tocando la nota con bend:"<<nota<<"  "<<msb<<":"<<lsb<<endl;
+}
+
 void callar(int nota){
   	message[0] = 128;//apagar nota en canal 1
   	message[1] = nota;
   	message[2] = 40;
   	midiout->sendMessage( &message );
-//	cout<<"callando la nota "<<nota<<"  "<<endl;
+	//cout<<"callando la nota "<<nota<<"  "<<endl;
 }
 
 void MyLine( Mat img, Point start, Point end ){
@@ -348,7 +362,7 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 			//cout<<"v1_x="<<v1_x<<",h1_y="<<h1_y<<endl;
 			break; 
 		case 119:
-			cout << "w" << endl;
+	//		cout << "w" << endl;
 			//sube el h2, osea, le resta 1 pixel
 			h2_y-=5;
 			if (h2_y<0) h2_y=0;
@@ -421,23 +435,49 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 			break;
 		case 32: //barra espaciadora
 			imprimir_escala_actual();
+			callar_todo();
 			break;
 	}//end switch
 }
 void tocar_nota(int x, int ancho){
-	//si es continuo, ejecutar otra cosa
-	continuo(x,ancho);
-	//primero determinar el número de división que corresponde, tomando en cuenta la variable numero
 	int ancho_nota=ancho/semitonos;
 	int num_nota=x/ancho_nota;
-	//se inicia con la nota 0 y termina en semitonos-1
-	//tocar la nota
-	if (nota_actual!=num_nota){
-		cout<<"--"<<x<<"--";
-		callar(notas_midi[nota_actual]);
-		play(notas_midi[num_nota]);
-		draw_note(num_nota);
-		nota_actual=num_nota;
+	//si es continuo, ejecutar otra cosa
+	if (cont) {
+		//primero, ver si es la misma nota.  Si la es, revisar si cambio suficiente
+		float tol=(float)x-(float)xviejo;
+		tol=abs(tol)/xviejo;
+		cout<<num_nota<<","<<x<<"  dif="<<tol<<endl;
+		if (nota_actual!=num_nota){ 
+			//no es la misma nota
+			cout<<"nota nueva"<<endl;
+			callar(notas_midi[nota_actual]);
+			continuo(x,ancho,true);//true es que es una nota nueva
+			nota_actual=num_nota;
+			xviejo=x;
+		}else{
+			//es la misma nota, revisar si el bend cambió más que TOLERANCIA
+			float tol=(float)x-(float)xviejo;
+			tol=abs(tol)/xviejo;
+			if (tol>TOLERANCIA){
+				cout<<"bend   ";
+				callar(notas_midi[nota_actual]);
+				continuo(x,ancho,false);//es nota vieja, solo cambiar el bend
+				xviejo=x;
+			}else{
+				//la diferencia en x no es tanta, siga con la misma nota
+				//cout<<"misma nota"<<endl;
+			}
+		}
+	}else{ //es discreto
+		//tocar la nota
+		if (nota_actual!=num_nota){
+			//cout<<"--"<<x<<"--";
+			callar(notas_midi[nota_actual]);
+			play(notas_midi[num_nota]);
+			draw_note(num_nota);
+			nota_actual=num_nota;
+		}
 	}
 }
 void draw_note(int num_nota){
@@ -468,6 +508,7 @@ void callar_todo(){
 }
 void aumentar_escala(){
 	system("clear");
+	callar_todo();
 	if (notas_midi[0]!=127){
 		notas_midi[0]=notas_midi[0]+1; //aumento un semitono
 	}
@@ -484,6 +525,7 @@ void aumentar_escala(){
 }
 void disminuir_escala(){
 	system("clear");
+	callar_todo();
 	if (notas_midi[0]!=0){
 		notas_midi[0]=notas_midi[0]-1; //aumento un semitono
 	}
@@ -518,6 +560,14 @@ void imprimir_escala_actual(){
 	system("clear");
 	cout<<"Escala en "<<imprimir_nota(notas_midi[0])<<" mayor"<<endl;
 }
-void continuo(int x, int ancho){
-
+void continuo(int x, int ancho, bool nueva){
+	int ancho_nota=ancho/semitonos;
+	int nota_central=x/ancho_nota;
+	int residuo=x%ancho_nota;
+	float porcentaje=(float) residuo/ (float) ancho_nota;
+	int bend=porcentaje*16384; //el bend toma 14 bits.  8192 es la nota pura
+	int lsb=bend%128;
+	int msb=bend/128;
+	//cout<<nota_central<<"="<<porcentaje<<"%"<<","<<bend<<"="<<msb<<"-"<<lsb<<endl;
+	play_bend(nota_central,msb,lsb,nueva);
 }
