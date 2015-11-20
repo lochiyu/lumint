@@ -149,7 +149,6 @@ int main(int argc, char* argv[]){
 		///////////////////////// DRAW LINES
 	
 		draw_lines(dWidth, dHeight);
-		imshow("Gris", gray_image);
 	
 		///////////////////////// PATTERN MATCHING
 		
@@ -166,7 +165,8 @@ int main(int argc, char* argv[]){
 			Hcropped = s.height;
 			Wcropped = s.width;
 			//dibujar las líneas para mostrar las fronteras de los tonos discretos
-			if (!cont) dibujar_semitonos(semitonos,Wcropped,Hcropped);
+			//if (!cont) dibujar_semitonos(semitonos,Wcropped,Hcropped);
+			if (!cont) dibujar_semitonos(semitonos,gray_image.size().width,gray_image.size().height);
 
 			s = proj.size();
 			H = s.height;
@@ -191,6 +191,7 @@ int main(int argc, char* argv[]){
 		//Image to projector
 		imshow("cortado", cropped);
 
+		imshow("Gris", gray_image);
 		imshow("edificio", proj);
 	}//end while
 	callar_todo();
@@ -249,7 +250,8 @@ void dibujar_semitonos(int numero, int ancho, int alto){
 	for (x=0;x<ancho;x+=ancho/numero){
 		p1=Point(x,0);
 		p2=Point(x,alto);
-		MyLine(cropped,p1,p2);
+		//MyLine(cropped,p1,p2);//cropped es para la imagen pequeña
+		MyLine(gray_image,p1,p2);
 		x+=2;
 	}
 }
