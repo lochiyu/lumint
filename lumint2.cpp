@@ -12,6 +12,7 @@ int threshold_type = 3;;
 int const max_value = 255;
 int const max_type = 4;
 int const max_BINARY_value = 255;
+bool animar=true;
 
 //coordenadas de x y para el crop
 //hay 4 lineas:
@@ -85,6 +86,10 @@ int main(int argc, char* argv[]){
 		if (strcmp(argv[j],"continuo")==0){ // de lo contrario es pintar
 			cont=true;//usaremos el modo continuo
 			cout<<"modo continuo activado"<<endl;
+		}
+		if (strcmp(argv[j],"noscroll")==0){ // no habrá scrolling de las líneas para que corra un poco más rápido
+			animar=false;
+			cout<<"animación de líneas desactivada"<<endl;
 		}
 		if (isInteger(argv[j])){
 			semitonos=atoi(argv[j]);
@@ -186,8 +191,9 @@ int main(int argc, char* argv[]){
 			rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
 		}
 		//scroll
-		scroll();
-		
+		if (animar) {
+			scroll();
+		}
 		//Image to projector
 		imshow("cortado", cropped);
 
@@ -532,6 +538,13 @@ void aumentar_escala(){
 	notas_midi[5]=notas_midi[4]+2;
 	notas_midi[6]=notas_midi[5]+2;
 	notas_midi[7]=notas_midi[6]+1;
+	notas_midi[8]=notas_midi[7]+2;
+	notas_midi[9]=notas_midi[8]+2;
+	notas_midi[10]=notas_midi[9]+1;
+	notas_midi[11]=notas_midi[10]+2;
+	notas_midi[12]=notas_midi[11]+2;
+	notas_midi[13]=notas_midi[12]+2;
+	notas_midi[14]=notas_midi[13]+1;
 }
 void disminuir_escala(){
 	system("clear");
@@ -549,6 +562,13 @@ void disminuir_escala(){
 	notas_midi[5]=notas_midi[4]+2;
 	notas_midi[6]=notas_midi[5]+2;
 	notas_midi[7]=notas_midi[6]+1;
+	notas_midi[8]=notas_midi[7]+2;
+	notas_midi[9]=notas_midi[8]+2;
+	notas_midi[10]=notas_midi[9]+1;
+	notas_midi[11]=notas_midi[10]+2;
+	notas_midi[12]=notas_midi[11]+2;
+	notas_midi[13]=notas_midi[12]+2;
+	notas_midi[14]=notas_midi[13]+1;
 }
 string imprimir_nota(int nota_midi){
 	switch(nota_midi%12){
