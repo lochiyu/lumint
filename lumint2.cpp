@@ -31,6 +31,7 @@ char* trackbar_value = "Value";
 
 char* window_name = "Threshold Demo";
 Mat gray_image,dst, cropped;
+Mat flipped;
 Mat templ; //mancha blanca a buscar
 Mat templ2; //mancha negra para el lumint
 Mat result; //imagen con la mancha procesada
@@ -79,6 +80,15 @@ int main(int argc, char* argv[]){
 	
 	init_midi();
 	for (int j=0;j<argc;j++){
+		if (strcmp(argv[j],"help")==0){
+			cout<<"opciones: "<<endl;
+			cout<<"  webcam: si hay otra cámara, aveces se enreda entre la de usb y del laptop"<<endl;
+			cout<<"  continuo: modo continuo, hay pulgas pues toca pocos semitonos"<<endl;
+			cout<<"  noscroll: no hay animación de líneas, para ahorrar procesamiento"<<endl;
+			cout<<"  número: fija el número de notas totals, siendo el máximo 15"<<endl;
+			cout<<endl<<"Ejemplo: ./d2 12 noscroll     <--causa 12 notas máximo, sin scroll"<<endl;
+			return 0;
+		}
 		if (strcmp(argv[j],"webcam")==0){ // de lo contrario es pintar
 			camara=1;//usaremos la webcam, siempre es bueno tener dos opciones
 			cout<<argv[j]<<" activada"<<endl;
@@ -198,7 +208,9 @@ int main(int argc, char* argv[]){
 		imshow("cortado", cropped);
 
 		imshow("Gris", gray_image);
-		imshow("edificio", proj);
+		if (animar){
+			imshow("edificio", proj);
+		}
 	}//end while
 	callar_todo();
 	delete midiout;
@@ -345,18 +357,20 @@ void MyLine( Mat img, Point start, Point end ){
 void inicializar_pantallas(void){
 	//preparar la plantilla
 	templ=imread("template2.png",1);
-	namedWindow("template", CV_WINDOW_AUTOSIZE);imshow("template", templ);
+	if(animar) namedWindow("template", CV_WINDOW_AUTOSIZE);
+	//imshow("template", templ);
 	cvtColor( templ, templ, CV_BGR2GRAY );
 	
 	//plantilla para el lumint mancha oscura
 	templ2=imread("template4.png",1);
-	namedWindow("template2", CV_WINDOW_AUTOSIZE);imshow("template2", templ2);
+	if(animar) namedWindow("template2", CV_WINDOW_AUTOSIZE);
+	//imshow("template2", templ2);
 	cvtColor( templ2, templ2, CV_BGR2GRAY );
 	
-	namedWindow("template encontrado", CV_WINDOW_AUTOSIZE);
+	if(animar) namedWindow("template encontrado", CV_WINDOW_AUTOSIZE);
 	//preparar el proyector
-	cvNamedWindow("edificio", CV_WINDOW_NORMAL);
-	cvSetWindowProperty("edificio", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
+	if(animar) cvNamedWindow("edificio", CV_WINDOW_NORMAL);
+	if(animar) cvSetWindowProperty("edificio", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
 	proj = Mat(400,720, CV_64F, cvScalar(0.));
 }
 void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
