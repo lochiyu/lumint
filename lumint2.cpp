@@ -119,6 +119,8 @@ int main(int argc, char* argv[]){
 		return -1;
 	}
 
+	cap.set(CV_CAP_PROP_FRAME_WIDTH, 176);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 144);
 	double dWidth = cap.get(CV_CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
 	double dHeight = cap.get(CV_CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
 
@@ -160,7 +162,6 @@ int main(int argc, char* argv[]){
 		cv::Mat croppedRef(source, myROI);
 		// Copy the data into new matrix
 		croppedRef.copyTo(cropped);
-
 		///////////////////////// DRAW LINES
 	
 		draw_lines(dWidth, dHeight);
@@ -207,6 +208,8 @@ int main(int argc, char* argv[]){
 		//Image to projector
 		imshow("cortado", cropped);
 
+		
+		resize(gray_image,gray_image,Size(1280,400));
 		imshow("Gris", gray_image);
 		if (animar){
 			imshow("edificio", proj);
@@ -281,6 +284,7 @@ void Threshold_Demo( int, void* ){
 	     3: Threshold to Zero
 	     4: Threshold to Zero Inverted
 	   */
+
 	  threshold( gray_image, dst, threshold_value, max_BINARY_value,threshold_type );
 	  imshow( window_name, dst );
 }
