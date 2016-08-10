@@ -1,8 +1,14 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <RtMidi.h>
 #include "opencv2/opencv.hpp"
 #include <unistd.h>
 #include <iostream>
+#include <sys/types.h> 
+#include <sys/socket.h>
+#include <netinet/in.h>
 #define SLEEP( milliseconds ) usleep( (unsigned long) (milliseconds * 1000.0) )
 #define TOLERANCIA 0.001
 using namespace cv;
@@ -74,10 +80,55 @@ void scroll(void);
 void draw_note(int num_nota);
 //fin relacionado con openCV
 
+int sockfd, newsockfd, portno;
+char * buf = new char(1);
 void leer_teclas(int tecla,bool &bandera, double &dWidth, double &dHeight);
 
+void error(const char *msg)
+{
+    perror(msg);
+    exit(1);
+}
+
+void abrir(int puerto){
+     socklen_t clilen;
+     char buffer[256];
+     struct sockaddr_in serv_addr, cli_addr;
+     sockfd = socket(AF_INET, SOCK_STREAM, 0);
+     if (sockfd < 0) 
+        error("ERROR opening socket");
+     bzero((char *) &serv_addr, sizeof(serv_addr));
+     portno = puerto;
+     serv_addr.sin_family = AF_INET;
+     serv_addr.sin_addr.s_addr = INADDR_ANY;
+     serv_addr.sin_port = htons(portno);
+     if (bind(sockfd, (struct sockaddr *) &serv_addr,
+              sizeof(serv_addr)) < 0) 
+              error("ERROR on binding");
+     listen(sockfd,5);
+     clilen = sizeof(cli_addr);
+     newsockfd = accept(sockfd, 
+                 (struct sockaddr *) &cli_addr, 
+                 &clilen);
+     if (newsockfd < 0) 
+          error("ERROR on accept");
+}
+
+void enviar(int xpos){
+	int n;
+	buf[0]=xpos;
+	n = write(newsockfd,buf,1);
+     	if (n < 0) error("ERROR writing to socket");
+}
+
+void cerrar(){
+     close(newsockfd);
+     close(sockfd);
+
+}
 int main(int argc, char* argv[]){
 	
+	abrir(5204);
 	init_midi();
 	for (int j=0;j<argc;j++){
 		if (strcmp(argv[j],"help")==0){
@@ -216,6 +267,7 @@ int main(int argc, char* argv[]){
 		}
 	}//end while
 	callar_todo();
+	cerrar();
 	delete midiout;
 	return 0;
 
@@ -476,6 +528,7 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 void tocar_nota(int x, int ancho){
 	int ancho_nota=ancho/semitonos;
 	int num_nota=x/ancho_nota;
+	enviar(num_nota);
 	//si es continuo, ejecutar otra cosa
 	if (cont) {
 		//primero, ver si es la misma nota.  Si la es, revisar si cambio suficiente
