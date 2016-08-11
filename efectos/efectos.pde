@@ -8,9 +8,14 @@ float[][] fire = new float [num][12];
 int intensidad=0;
 int ultimo;
 int col=0;
+int contador=0;
+int ciclar=30;
+int turno=0;
+int contadorfx=0;
+int numeroefectos=2;
 
 void setup() { 
-  size(640, 360);
+  size(1024, 800);
   noStroke();
   frameRate(60);
   rectMode(CENTER);
@@ -20,16 +25,76 @@ void setup() {
   // Connect to the local machine at port 5204.
   // This example will not run if you haven't
   // previously started a server on this port.
-  myClient = new Client(this, "127.0.0.1", 5204); 
+  myClient = new Client(this, "127.0.0.1", 5200); 
+  
+  flock = new Flock();
+  
+rcolores[0]=255;
+gcolores[0]=255;
+bcolores[0]=255;
+
+rcolores[1]=0;
+gcolores[1]=255;
+bcolores[1]=0;
+
+rcolores[2]=255;
+gcolores[2]=0;
+bcolores[2]=0;
+
+rcolores[3]=0;
+gcolores[3]=0;
+bcolores[3]=255;
+
+rcolores[4]=0;
+gcolores[4]=255;
+bcolores[4]=255;
+
+rcolores[5]=255;
+gcolores[5]=255;
+bcolores[5]=0;
+
+rcolores[6]=102;
+gcolores[6]=0;
+bcolores[6]=204;
+
+rcolores[7]=204;
+gcolores[7]=102;
+bcolores[7]=255;
+
 } 
  
 void draw() { 
   background(0);
   if (myClient.available() > 0) { 
     dataIn = myClient.read(); 
-    println(dataIn);
-    if(dataIn<10){
-      for(int i=0; i<50; i++)
+    //println(dataIn);
+    
+    if(dataIn<10){ //es una nota de la octava
+      contador++;
+      if (contador%ciclar==0){
+        //hora de cambiar de efecto
+        contadorfx++;
+        println("Cambiando de efecto");
+        if (contadorfx==numeroefectos) {
+          contadorfx=0;
+        }
+      }
+      if (contadorfx==1) fuego();
+      if (contadorfx==0) dibujarBoid();
+    }
+  }
+  
+  //mantenimiento de fuego
+  update_fire(); 
+  draw_fire();
+  
+  //mantenimiento de aves
+  flock.run();
+
+} 
+
+void fuego(){
+      for(int i=0; i<100; i++)
       {
         x=dataIn;
         if (ultimo==dataIn) intensidad+=5;
@@ -39,62 +104,5 @@ void draw() {
         }
         ultimo=dataIn;
         create_fire();
-      }
-    }
-  }
-  update_fire(); 
-  draw_fire();
-
-} 
-
-void update_fire()
-{
-  for(int flame=0 ; flame<num ; flame++)
-  {
-    if(fire[flame][0]==1)
-    {
-      fire[flame][1]=fire[flame][1]+fire[flame][5]*cos(fire[flame][3]);
-      fire[flame][2]=fire[flame][2]+fire[flame][5]*sin(fire[flame][3]);
-    }
-    fire[flame][7]+=1;
-    if(fire[flame][7]>fire[flame][6]){
-      fire[flame][0]=0;
-    }
-  }
+      }  
 }
-void draw_fire(){
-  for(int flame=0 ; flame<num ; flame++){
-    if(fire[flame][0]==1){
-      fill(fire[flame][9],fire[flame][10],fire[flame][11],40);
-      pushMatrix();
-      translate(fire[flame][1],fire[flame][2]);
-      rotate(fire[flame][8]);
-      rect(0,0,fire[flame][4],fire[flame][4]);
-      popMatrix();
-    }
-  }
-}
-void create_fire()
-  {
-    println((col%3)*100);
-  for(int i=num-1; i>0; i--)
-  {
-    for(int fireprop=0;fireprop<12;fireprop++)
-    {
-      fire[i][fireprop]=fire[i-1][fireprop];
-    }
-    
-    fire[0][0]=1;
-    fire[0][1]=x*50;
-    fire[0][2]=330;
-    fire[0][3]=-random(0,PI);//angle
-    fire[0][4]=random(5,10);//size
-    fire[0][5]=random(1,2);//speed
-    fire[0][6]=random(10,60+intensidad);//maxlife
-    fire[0][7]=0;//currentlife
-    fire[0][8]=random(0,TWO_PI);
-    fire[0][9]=random(200,255);//red
-    fire[0][10]=random(50,150)*((col%3)*50);//green
-    fire[0][11]=(col%3)*110;
-   }
- } 

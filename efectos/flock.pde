@@ -1,38 +1,25 @@
 Flock flock;
-int x=0;
+int xm=0;
 Boid []nuevo;
-int num=20;
-
-void setup() {
-  size(640, 360);
-  flock = new Flock();
-  // Add an initial set of boids into the system
-
-//    flock.addBoid(new Boid(width/2,height/2));
-  
-}
-
-void draw() {
-  background(50);
-  flock.run();
-}
+int numinicial=20;
+//colores
+int []rcolores = new int[8];
+int []gcolores = new int[8];
+int []bcolores = new int[8];
 
 // Add a new boid into the System
-void mousePressed() {
-  if (x==mouseY){
-    for (int i = 0; i < num; i++) {
+void dibujarBoid() {
+  if (xm==dataIn){
+    for (int i = 0; i < numinicial; i++) {
       nuevo[i].r++;   
     }
   }else{
-    int c= (int) random(0,255);
-    int cc= (int) random(0,255);
-    int ccc= (int) random(0,255);
     nuevo = new Boid[num];
-    for (int i = 0; i < num; i++) {
-      nuevo[i]= new Boid(mouseX,mouseY,c,cc,ccc);
+    for (int i = 0; i < numinicial; i++) {
+      nuevo[i]= new Boid(dataIn*100,0,rcolores[dataIn],gcolores[dataIn],bcolores[dataIn]);
       flock.addBoid(nuevo[i]);
     }
-    x=mouseY;
+    xm=dataIn;
   }
 }
 
@@ -49,7 +36,9 @@ class Flock {
 
   void run() {
     for (Boid b : boids) {
-      b.run(boids);  // Passing the entire list of boids to each boid individually
+      if (b.life!=0) {
+        b.run(boids);  // Passing the entire list of boids to each boid individually
+      }
     }
   }
 
@@ -72,6 +61,7 @@ class Boid {
   float r;
   float maxforce;    // Maximum steering force
   float maxspeed;    // Maximum speed
+  int life;
   int rr,g,b;
   
     Boid(float x, float y,int rx, int gx, int bx) {
@@ -81,17 +71,19 @@ class Boid {
     // velocity = PVector.random2D();
 
     // Leaving the code temporarily this way so that this example runs in JS
-    float angle = random(TWO_PI);
+    float angle = random(PI);
     velocity = new PVector(cos(angle), sin(angle));
 
     location = new PVector(x, y);
-    r = 2.0;
+    r = 3.0;
     maxspeed = 2;
     maxforce = 0.03;
     
     rr=rx;
     g=gx;
     b=bx;
+    
+    life=(int) random(400,5000);
   }
 
   void run(ArrayList<Boid> boids) {
@@ -99,6 +91,7 @@ class Boid {
     update();
     borders();
     render();
+    life--;
   }
 
   void applyForce(PVector force) {
@@ -155,8 +148,8 @@ class Boid {
     float theta = velocity.heading2D() + radians(90);
     // heading2D() above is now heading() but leaving old syntax until Processing.js catches up
     
-    fill(200, 100);
-    stroke(rr,g,b);
+    fill(rr,g,b);
+    //stroke(rr,g,b);
     pushMatrix();
     translate(location.x, location.y);
     rotate(theta);
