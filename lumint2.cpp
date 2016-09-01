@@ -138,11 +138,26 @@ int main(int argc, char* argv[]){
 			cout<<"  continuo: modo continuo, hay pulgas pues toca pocos semitonos"<<endl;
 			cout<<"  noscroll: no hay animación de líneas, para ahorrar procesamiento"<<endl;
 			cout<<"  número: fija el número de notas totals, siendo el máximo 15"<<endl;
+			cout<<"  cromatica: fija una escala cromatica y no diatonica"<<endl;
 			cout<<endl<<"Ejemplo: ./d2 12 noscroll     <--causa 12 notas máximo, sin scroll"<<endl;
 			return 0;
 		}
 		if (strcmp(argv[j],"cromatica")==0){ // quiero una escala cromatica
-			notas_midi[15]={60,61,62,63,64,65,66,67,68,69,70,71,72,73,74};//escala inicial por defecto
+			notas_midi[0]=60;
+			notas_midi[1]=61;
+			notas_midi[2]=62;
+			notas_midi[3]=63;
+			notas_midi[4]=64;
+			notas_midi[5]=65;
+			notas_midi[6]=66;
+			notas_midi[7]=67;
+			notas_midi[8]=68;
+			notas_midi[9]=69;
+			notas_midi[10]=70;
+			notas_midi[11]=71;
+			notas_midi[12]=72;
+			notas_midi[13]=73;
+			notas_midi[14]=74;
 			cromatica=true;
 			cout<<argv[j]<<" activada"<<endl;
 		}
@@ -336,7 +351,6 @@ void dibujar_semitonos(int numero, int ancho, int alto){
 		p2=Point(x,alto);
 		//MyLine(cropped,p1,p2);//cropped es para la imagen pequeña
 		MyLine(gray_image,p1,p2);
-		x+=2;
 	}
 }
 
