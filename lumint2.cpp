@@ -20,6 +20,7 @@ int const max_type = 4;
 int const max_BINARY_value = 255;
 bool animar=true;
 bool processing=false;
+bool cromatica=false;
 
 //coordenadas de x y para el crop
 //hay 4 lineas:
@@ -139,6 +140,11 @@ int main(int argc, char* argv[]){
 			cout<<"  número: fija el número de notas totals, siendo el máximo 15"<<endl;
 			cout<<endl<<"Ejemplo: ./d2 12 noscroll     <--causa 12 notas máximo, sin scroll"<<endl;
 			return 0;
+		}
+		if (strcmp(argv[j],"cromatica")==0){ // quiero una escala cromatica
+			notas_midi[15]={60,61,62,63,64,65,66,67,68,69,70,71,72,73,74};//escala inicial por defecto
+			cromatica=true;
+			cout<<argv[j]<<" activada"<<endl;
 		}
 		if (strcmp(argv[j],"webcam")==0){ // de lo contrario es pintar
 			camara=1;//usaremos la webcam, siempre es bueno tener dos opciones
@@ -607,20 +613,37 @@ void aumentar_escala(){
 	cout<<"Escala en "<<imprimir_nota(notas_midi[0])<<" mayor"<<endl;
 	//incremento las demás según la primera
 	//escala mayor nada más
-	notas_midi[1]=notas_midi[0]+2;
-	notas_midi[2]=notas_midi[1]+2;
-	notas_midi[3]=notas_midi[2]+1;
-	notas_midi[4]=notas_midi[3]+2;
-	notas_midi[5]=notas_midi[4]+2;
-	notas_midi[6]=notas_midi[5]+2;
-	notas_midi[7]=notas_midi[6]+1;
-	notas_midi[8]=notas_midi[7]+2;
-	notas_midi[9]=notas_midi[8]+2;
-	notas_midi[10]=notas_midi[9]+1;
-	notas_midi[11]=notas_midi[10]+2;
-	notas_midi[12]=notas_midi[11]+2;
-	notas_midi[13]=notas_midi[12]+2;
-	notas_midi[14]=notas_midi[13]+1;
+	if (cromatica!=true){//diatonica
+		notas_midi[1]=notas_midi[0]+2;
+		notas_midi[2]=notas_midi[1]+2;
+		notas_midi[3]=notas_midi[2]+1;
+		notas_midi[4]=notas_midi[3]+2;
+		notas_midi[5]=notas_midi[4]+2;
+		notas_midi[6]=notas_midi[5]+2;
+		notas_midi[7]=notas_midi[6]+1;
+		notas_midi[8]=notas_midi[7]+2;
+		notas_midi[9]=notas_midi[8]+2;
+		notas_midi[10]=notas_midi[9]+1;
+		notas_midi[11]=notas_midi[10]+2;
+		notas_midi[12]=notas_midi[11]+2;
+		notas_midi[13]=notas_midi[12]+2;
+		notas_midi[14]=notas_midi[13]+1;
+	}else{ //es escala cromatica
+		notas_midi[1]=notas_midi[0]+1;
+		notas_midi[2]=notas_midi[1]+1;
+		notas_midi[3]=notas_midi[2]+1;
+		notas_midi[4]=notas_midi[3]+1;
+		notas_midi[5]=notas_midi[4]+1;
+		notas_midi[6]=notas_midi[5]+1;
+		notas_midi[7]=notas_midi[6]+1;
+		notas_midi[8]=notas_midi[7]+1;
+		notas_midi[9]=notas_midi[8]+1;
+		notas_midi[10]=notas_midi[9]+1;
+		notas_midi[11]=notas_midi[10]+1;
+		notas_midi[12]=notas_midi[11]+1;
+		notas_midi[13]=notas_midi[12]+1;
+		notas_midi[14]=notas_midi[13]+1;
+	}
 }
 void disminuir_escala(){
 	system("clear");
@@ -631,20 +654,37 @@ void disminuir_escala(){
 	cout<<"Escala en "<<imprimir_nota(notas_midi[0])<<" mayor"<<endl;
 	//incremento las demás según la primera
 	//escala mayor nada más
-	notas_midi[1]=notas_midi[0]+2;
-	notas_midi[2]=notas_midi[1]+2;
-	notas_midi[3]=notas_midi[2]+1;
-	notas_midi[4]=notas_midi[3]+2;
-	notas_midi[5]=notas_midi[4]+2;
-	notas_midi[6]=notas_midi[5]+2;
-	notas_midi[7]=notas_midi[6]+1;
-	notas_midi[8]=notas_midi[7]+2;
-	notas_midi[9]=notas_midi[8]+2;
-	notas_midi[10]=notas_midi[9]+1;
-	notas_midi[11]=notas_midi[10]+2;
-	notas_midi[12]=notas_midi[11]+2;
-	notas_midi[13]=notas_midi[12]+2;
-	notas_midi[14]=notas_midi[13]+1;
+	if (cromatica!=true){//diatonica
+		notas_midi[1]=notas_midi[0]+2;
+		notas_midi[2]=notas_midi[1]+2;
+		notas_midi[3]=notas_midi[2]+1;
+		notas_midi[4]=notas_midi[3]+2;
+		notas_midi[5]=notas_midi[4]+2;
+		notas_midi[6]=notas_midi[5]+2;
+		notas_midi[7]=notas_midi[6]+1;
+		notas_midi[8]=notas_midi[7]+2;
+		notas_midi[9]=notas_midi[8]+2;
+		notas_midi[10]=notas_midi[9]+1;
+		notas_midi[11]=notas_midi[10]+2;
+		notas_midi[12]=notas_midi[11]+2;
+		notas_midi[13]=notas_midi[12]+2;
+		notas_midi[14]=notas_midi[13]+1;
+	}else{ //es escala cromatica
+		notas_midi[1]=notas_midi[0]+1;
+		notas_midi[2]=notas_midi[1]+1;
+		notas_midi[3]=notas_midi[2]+1;
+		notas_midi[4]=notas_midi[3]+1;
+		notas_midi[5]=notas_midi[4]+1;
+		notas_midi[6]=notas_midi[5]+1;
+		notas_midi[7]=notas_midi[6]+1;
+		notas_midi[8]=notas_midi[7]+1;
+		notas_midi[9]=notas_midi[8]+1;
+		notas_midi[10]=notas_midi[9]+1;
+		notas_midi[11]=notas_midi[10]+1;
+		notas_midi[12]=notas_midi[11]+1;
+		notas_midi[13]=notas_midi[12]+1;
+		notas_midi[14]=notas_midi[13]+1;
+	}
 }
 string imprimir_nota(int nota_midi){
 	switch(nota_midi%12){
