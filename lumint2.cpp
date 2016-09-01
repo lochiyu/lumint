@@ -19,6 +19,7 @@ int const max_value = 255;
 int const max_type = 4;
 int const max_BINARY_value = 255;
 bool animar=true;
+bool processing=false;
 
 //coordenadas de x y para el crop
 //hay 4 lineas:
@@ -128,7 +129,6 @@ void cerrar(){
 }
 int main(int argc, char* argv[]){
 	
-	abrir(5204);
 	init_midi();
 	for (int j=0;j<argc;j++){
 		if (strcmp(argv[j],"help")==0){
@@ -147,6 +147,11 @@ int main(int argc, char* argv[]){
 		if (strcmp(argv[j],"continuo")==0){ // de lo contrario es pintar
 			cont=true;//usaremos el modo continuo
 			cout<<"modo continuo activado"<<endl;
+		}
+		if (strcmp(argv[j],"fx")==0){ // no habrá efectos de processing
+			processing=true;
+			abrir(5204);
+			cout<<"animación de processing desactivada"<<endl;
 		}
 		if (strcmp(argv[j],"noscroll")==0){ // no habrá scrolling de las líneas para que corra un poco más rápido
 			animar=false;
@@ -528,7 +533,7 @@ void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
 void tocar_nota(int x, int ancho){
 	int ancho_nota=ancho/semitonos;
 	int num_nota=x/ancho_nota;
-	enviar(num_nota);
+	if (processing) enviar(num_nota);
 	//si es continuo, ejecutar otra cosa
 	if (cont) {
 		//primero, ver si es la misma nota.  Si la es, revisar si cambio suficiente

@@ -1,22 +1,22 @@
 Flock flock;
-int xm=0;
+int xm=-1;
 Boid []nuevo;
-int numinicial=20;
+int numinicial=8;
 //colores
-int []rcolores = new int[8];
-int []gcolores = new int[8];
-int []bcolores = new int[8];
+int []rcolores = new int[9];
+int []gcolores = new int[9];
+int []bcolores = new int[9];
 
 // Add a new boid into the System
 void dibujarBoid() {
   if (xm==dataIn){
     for (int i = 0; i < numinicial; i++) {
-      nuevo[i].r++;   
+      //nuevo[i].r+=1;   
     }
   }else{
     nuevo = new Boid[num];
     for (int i = 0; i < numinicial; i++) {
-      nuevo[i]= new Boid(dataIn*100,0,rcolores[dataIn],gcolores[dataIn],bcolores[dataIn]);
+      nuevo[i]= new Boid(dataIn*200,400,rcolores[dataIn],gcolores[dataIn],bcolores[dataIn]);
       flock.addBoid(nuevo[i]);
     }
     xm=dataIn;
@@ -71,7 +71,7 @@ class Boid {
     // velocity = PVector.random2D();
 
     // Leaving the code temporarily this way so that this example runs in JS
-    float angle = random(PI);
+    float angle = random(2*PI);
     velocity = new PVector(cos(angle), sin(angle));
 
     location = new PVector(x, y);
@@ -83,7 +83,7 @@ class Boid {
     g=gx;
     b=bx;
     
-    life=(int) random(400,5000);
+    life=(int) random(100,500);
   }
 
   void run(ArrayList<Boid> boids) {

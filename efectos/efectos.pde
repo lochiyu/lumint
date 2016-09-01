@@ -15,7 +15,7 @@ int contadorfx=0;
 int numeroefectos=2;
 
 void setup() { 
-  size(1024, 800);
+  size(2024, 800);
   noStroke();
   frameRate(60);
   rectMode(CENTER);
@@ -25,7 +25,7 @@ void setup() {
   // Connect to the local machine at port 5204.
   // This example will not run if you haven't
   // previously started a server on this port.
-  myClient = new Client(this, "127.0.0.1", 5200); 
+  myClient = new Client(this, "127.0.0.1", 5204); 
   
   flock = new Flock();
   
@@ -61,6 +61,10 @@ rcolores[7]=204;
 gcolores[7]=102;
 bcolores[7]=255;
 
+rcolores[8]=204;
+gcolores[8]=202;
+bcolores[7]=255;
+
 } 
  
 void draw() { 
@@ -69,7 +73,7 @@ void draw() {
     dataIn = myClient.read(); 
     //println(dataIn);
     
-    if(dataIn<10){ //es una nota de la octava
+    if(dataIn<9){ //es una nota de la octava
       contador++;
       if (contador%ciclar==0){
         //hora de cambiar de efecto
@@ -79,14 +83,15 @@ void draw() {
           contadorfx=0;
         }
       }
-      if (contadorfx==1) fuego();
-      if (contadorfx==0) dibujarBoid();
+      //FUEGO descartado por ahora
+      //if (contadorfx==0) fuego();
+      dibujarBoid();
     }
   }
   
   //mantenimiento de fuego
-  update_fire(); 
-  draw_fire();
+  //update_fire(); 
+  //draw_fire();
   
   //mantenimiento de aves
   flock.run();

@@ -36,7 +36,7 @@ void create_fire()
     }
     
     fire[0][0]=1;
-    fire[0][1]=x*100;
+    fire[0][1]=x*200;
     fire[0][2]=800;
     fire[0][3]=-random(0,PI);//angle
     fire[0][4]=random(5,10);//size
