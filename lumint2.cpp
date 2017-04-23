@@ -9,7 +9,6 @@
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
-#define SLEEP( milliseconds ) usleep( (unsigned long) (milliseconds * 1000.0) )
 #define TOLERANCIA 0.001
 using namespace cv;
 using namespace std;
@@ -33,7 +32,7 @@ int v1_x=0;
 int v2_x=400;
 int Hcropped, Wcropped;
 
-char* modalidad = "0: detección de oscuridad \n1: detección de linea";
+char* modalidad = "detección de oscuridad \ndetección de linea";
 char* trackbar_value = "Umbral: O para -, P para +";
 
 char* window_name = "Panel de Control";
@@ -42,7 +41,6 @@ char n[5];
 
 Mat gray_image,dst, cropped;
 Mat nota(470,820,CV_8UC3, Scalar(0,0,0));
-Mat flipped;
 Mat templ2; //plantilla para el lumint
 Mat result; //imagen con la mancha procesada
 int camara=0; //default es la camara de la compu
@@ -264,7 +262,7 @@ int main(int argc, char* argv[]){
 			Wcropped = s.width;
 			//dibujar las líneas para mostrar las fronteras de los tonos discretos
 			//if (!cont) dibujar_semitonos(semitonos,Wcropped,Hcropped);
-			if (!cont) dibujar_semitonos(semitonos,gray_image.size().width,gray_image.size().height);
+			if (!cont) dibujar_semitonos(semitonos,v2_x-v1_x,gray_image.size().height);
 
 			Mat roi(cropped, Rect(matchLoc.x , matchLoc.y, templ2.cols , templ2.rows));
 			
@@ -280,6 +278,7 @@ int main(int argc, char* argv[]){
 			}
 			
 			rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
+			rectangle( gray_image, Point(matchLoc.x+v1_x,matchLoc.y), Point( matchLoc.x + templ2.cols+v1_x , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
 		}
 		//Image to projector
 		imshow("cortado", cropped);
@@ -359,7 +358,7 @@ void draw_lines(double dWidth, double dHeight){
 void dibujar_semitonos(int numero, int ancho, int alto){
 	int x;
 	Point p1,p2;
-	for (x=0;x<ancho;x+=ancho/numero){
+	for (x=v1_x;x<ancho+v1_x;x+=ancho/numero){
 		p1=Point(x,0);
 		p2=Point(x,alto);
 		//MyLine(cropped,p1,p2);//cropped es para la imagen pequeña
