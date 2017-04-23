@@ -41,7 +41,7 @@ char n[5];
 
 
 Mat gray_image,dst, cropped;
-Mat nota(420,420,CV_8UC3, Scalar(0,0,0));
+Mat nota(470,820,CV_8UC3, Scalar(0,0,0));
 Mat flipped;
 Mat templ2; //plantilla para el lumint
 Mat result; //imagen con la mancha procesada
@@ -92,209 +92,209 @@ void leer_teclas(int tecla,bool &bandera, double &dWidth, double &dHeight);
 
 void error(const char *msg)
 {
-perror(msg);
-exit(1);
+	perror(msg);
+	exit(1);
 }
 
 void abrir(int puerto){
-socklen_t clilen;
-char buffer[256];
-struct sockaddr_in serv_addr, cli_addr;
-sockfd = socket(AF_INET, SOCK_STREAM, 0);
-if (sockfd < 0) 
-error("ERROR opening socket");
-bzero((char *) &serv_addr, sizeof(serv_addr));
-portno = puerto;
-serv_addr.sin_family = AF_INET;
-serv_addr.sin_addr.s_addr = INADDR_ANY;
-serv_addr.sin_port = htons(portno);
-if (bind(sockfd, (struct sockaddr *) &serv_addr,
-      sizeof(serv_addr)) < 0) 
-      error("ERROR on binding");
-listen(sockfd,5);
-clilen = sizeof(cli_addr);
-newsockfd = accept(sockfd, 
-	 (struct sockaddr *) &cli_addr, 
-	 &clilen);
-if (newsockfd < 0) 
-  error("ERROR on accept");
+	socklen_t clilen;
+	char buffer[256];
+	struct sockaddr_in serv_addr, cli_addr;
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	if (sockfd < 0) 
+	error("ERROR opening socket");
+	bzero((char *) &serv_addr, sizeof(serv_addr));
+	portno = puerto;
+	serv_addr.sin_family = AF_INET;
+	serv_addr.sin_addr.s_addr = INADDR_ANY;
+	serv_addr.sin_port = htons(portno);
+	if (bind(sockfd, (struct sockaddr *) &serv_addr,
+	      sizeof(serv_addr)) < 0) 
+	      error("ERROR on binding");
+	listen(sockfd,5);
+	clilen = sizeof(cli_addr);
+	newsockfd = accept(sockfd, 
+		 (struct sockaddr *) &cli_addr, 
+		 &clilen);
+	if (newsockfd < 0) 
+	  error("ERROR on accept");
 }
 
 void enviar(int xpos){
-int n;
-buf[0]=xpos;
-n = write(newsockfd,buf,1);
-if (n < 0) error("ERROR writing to socket");
+	int n;
+	buf[0]=xpos;
+	n = write(newsockfd,buf,1);
+	if (n < 0) error("ERROR writing to socket");
 }
 
 void cerrar(){
-close(newsockfd);
-close(sockfd);
+	close(newsockfd);
+	close(sockfd);
 
 }
 int main(int argc, char* argv[]){
 
-init_midi();
-for (int j=0;j<argc;j++){
-	if (strcmp(argv[j],"help")==0){
-		cout<<"opciones: "<<endl;
-		cout<<"  webcam: si hay otra cámara, aveces se enreda entre la de usb y del laptop"<<endl;
-		cout<<"  continuo: modo continuo, hay pulgas pues toca pocos semitonos"<<endl;
-		cout<<"  linea: detectar reflejo de la mano en vez de obstrucción del laser"<<endl;
-		cout<<"  número: fija el número de notas totals, siendo el máximo 15"<<endl;
-		cout<<"  cromatica: fija una escala cromatica y no diatonica"<<endl;
-		cout<<endl<<"Ejemplo: ./d2 12 noscroll     <--causa 12 notas máximo, sin scroll"<<endl;
-		return 0;
-	}
-	if (strcmp(argv[j],"cromatica")==0){ // quiero una escala cromatica
-		notas_midi[0]=60;
-		notas_midi[1]=61;
-		notas_midi[2]=62;
-		notas_midi[3]=63;
-		notas_midi[4]=64;
-		notas_midi[5]=65;
-		notas_midi[6]=66;
-		notas_midi[7]=67;
-		notas_midi[8]=68;
-		notas_midi[9]=69;
-		notas_midi[10]=70;
-		notas_midi[11]=71;
-		notas_midi[12]=72;
-		notas_midi[13]=73;
-		notas_midi[14]=74;
-		cromatica=true;
-		cout<<argv[j]<<" activada"<<endl;
-	}
-	if (strcmp(argv[j],"webcam")==0){ // de lo contrario es pintar
-		camara=1;//usaremos la webcam, siempre es bueno tener dos opciones
-		cout<<argv[j]<<" activada"<<endl;
-	}
-	if (strcmp(argv[j],"linea")==0){ // deteccion de linea
-		linea=true;//usaremos el modo continuo
-		cout<<"modo linea activado"<<endl;
-	}
-	if (strcmp(argv[j],"continuo")==0){ // de lo contrario es pintar
-		cont=true;//usaremos el modo continuo
-		cout<<"modo continuo activado"<<endl;
-	}
-	if (strcmp(argv[j],"fx")==0){ // no habrá efectos de processing
-		processing=true;
-		abrir(5204);
-		cout<<"animación de processing desactivada"<<endl;
-	}
-	if (isInteger(argv[j])){
-		semitonos=atoi(argv[j]);
-		if (semitonos>15){
-			cout<<"El máximo de notas es 15"<<endl;
-		}else{
-			cout<<"Cambiando el número de notas a "<<semitonos<<endl;
+	init_midi();
+	for (int j=0;j<argc;j++){
+		if (strcmp(argv[j],"help")==0){
+			cout<<"opciones: "<<endl;
+			cout<<"  webcam: si hay otra cámara, aveces se enreda entre la de usb y del laptop"<<endl;
+			cout<<"  continuo: modo continuo, hay pulgas pues toca pocos semitonos"<<endl;
+			cout<<"  número: fija el número de notas totals, siendo el máximo 15"<<endl;
+			cout<<"  cromatica: fija una escala cromatica y no diatonica"<<endl;
+			cout<<endl<<"Ejemplo: ./d2 12 noscroll     <--causa 12 notas máximo, sin scroll"<<endl;
+			return 0;
 		}
-	}
-}//end for
-inicializar_pantallas();//ventanas de openCV
+		if (strcmp(argv[j],"cromatica")==0){ // quiero una escala cromatica
+			notas_midi[0]=60;
+			notas_midi[1]=61;
+			notas_midi[2]=62;
+			notas_midi[3]=63;
+			notas_midi[4]=64;
+			notas_midi[5]=65;
+			notas_midi[6]=66;
+			notas_midi[7]=67;
+			notas_midi[8]=68;
+			notas_midi[9]=69;
+			notas_midi[10]=70;
+			notas_midi[11]=71;
+			notas_midi[12]=72;
+			notas_midi[13]=73;
+			notas_midi[14]=74;
+			cromatica=true;
+			cout<<argv[j]<<" activada"<<endl;
+		}
+		if (strcmp(argv[j],"webcam")==0){ // de lo contrario es pintar
+			camara=1;//usaremos la webcam, siempre es bueno tener dos opciones
+			cout<<argv[j]<<" activada"<<endl;
+		}
+		if (strcmp(argv[j],"linea")==0){ // deteccion de linea
+			linea=true;//usaremos el modo continuo
+			cout<<"modo linea activado"<<endl;
+		}
+		if (strcmp(argv[j],"continuo")==0){ // de lo contrario es pintar
+			cont=true;//usaremos el modo continuo
+			cout<<"modo continuo activado"<<endl;
+		}
+		if (strcmp(argv[j],"fx")==0){ // no habrá efectos de processing
+			processing=true;
+			abrir(5204);
+			cout<<"animación de processing desactivada"<<endl;
+		}
+		if (isInteger(argv[j])){
+			semitonos=atoi(argv[j]);
+			if (semitonos>15){
+				cout<<"El máximo de notas es 15"<<endl;
+			}else{
+				cout<<"Cambiando el número de notas a "<<semitonos<<endl;
+			}
+		}
+	}//end for
+	inicializar_pantallas();//ventanas de openCV
 
-VideoCapture cap(camara); // open the video camera no. 0
-if (!cap.isOpened())  // if not success, exit program
-{
-	cout << "Cannot open the video cam" << endl;
-	return -1;
-}
-
-cap.set(CV_CAP_PROP_FRAME_WIDTH, 176);
-cap.set(CV_CAP_PROP_FRAME_HEIGHT, 144);
-double dWidth = cap.get(CV_CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
-double dHeight = cap.get(CV_CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
-
-h2_y=int(dHeight)-1;
-v2_x=int(dWidth)-1;
-cout << "Frame size : " << dWidth << " x " << dHeight << endl;
-
-//loop principal
-while (1)
-{
-	Mat frame;
-	bool bSuccess = cap.read(frame); // read a new frame from video
-
-	if (!bSuccess) //if not success, break loop
+	VideoCapture cap(camara); // open the video camera no. 0
+	if (!cap.isOpened())  // if not success, exit program
 	{
-	     cout << "Cannot read a frame from video stream" << endl;
-	     break;
+		cout << "Cannot open the video cam" << endl;
+		return -1;
 	}
 
-	cvtColor( frame, gray_image, CV_BGR2GRAY );
+	cap.set(CV_CAP_PROP_FRAME_WIDTH, 176);
+	cap.set(CV_CAP_PROP_FRAME_HEIGHT, 144);
+	double dWidth = cap.get(CV_CAP_PROP_FRAME_WIDTH); //get the width of frames of the video
+	double dHeight = cap.get(CV_CAP_PROP_FRAME_HEIGHT); //get the height of frames of the video
+
+	h2_y=int(dHeight)-1;
+	v2_x=int(dWidth)-1;
+	cout << "Frame size : " << dWidth << " x " << dHeight << endl;
+	
 	namedWindow( window_name, CV_WINDOW_NORMAL );
-	createTrackbar( modalidad,window_name, &tipo_modalidad,1, cambio_modalidad );
-	createTrackbar( trackbar_value,window_name, &threshold_value,max_value, Threshold_Demo );
 
-	//opciones para cambiar configuración
-	  
-	Threshold_Demo(0,0);
-	int key=waitKey(30);
-	bool end=false;
-	leer_teclas(key,end,dWidth,dHeight);
-	
-	if (end) break;
+	Mat frame;
+	//loop principal
+	while (1)
+	{
+		bool bSuccess = cap.read(frame); // read a new frame from video
 
-	cv::Mat source = dst;
-	// Setup a rectangle to define your region of interest
-	//cout<<v1_x<<","<< h1_y<<","<< v2_x<<","<< h2_y<<endl;
-	cv::Rect myROI(v1_x, h1_y, v2_x-v1_x, h2_y-h1_y);
-	// Crop the full image to that image contained by the rectangle myROI
-	// Note that this doesn't copy the data
-	cv::Mat croppedRef(source, myROI);
-	// Copy the data into new matrix
-	croppedRef.copyTo(cropped);
-	///////////////////////// DRAW LINES
-
-	draw_lines(dWidth, dHeight);
-
-	///////////////////////// PATTERN MATCHING
-	
-	if ((cropped.depth() == CV_8U || cropped.depth() == CV_32F) && cropped.type() == templ2.type()){
-		matchTemplate(cropped, templ2, result, 0);
-		//tomado de http://docs.opencv.org/doc/tutorials/imgproc/histograms/template_matching/template_matching.html
-		normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
-		double minVal; double maxVal; Point minLoc; Point maxLoc;
-		Point matchLoc;
-		minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
-		
-		matchLoc = minLoc;
-		Size s = cropped.size();
-		Hcropped = s.height;
-		Wcropped = s.width;
-		//dibujar las líneas para mostrar las fronteras de los tonos discretos
-		//if (!cont) dibujar_semitonos(semitonos,Wcropped,Hcropped);
-		if (!cont) dibujar_semitonos(semitonos,gray_image.size().width,gray_image.size().height);
-
-		Mat roi(cropped, Rect(matchLoc.x , matchLoc.y, templ2.cols , templ2.rows));
-		
-		imshow("template encontrado", roi);
-		if (negro(roi)&&!linea || (linea&&haylinea(roi))){ //encontré la mancha, mandar coordenada
-			//cout<<Wcropped<<" ";
-			//cout<<"detected:"<<matchLoc.x<<","<<matchLoc.y<<endl;
-			tocar_nota(matchLoc.x,Wcropped);
-		}else{ //no se encontro nada, callar
-			//cout<<"callando"<<endl;
-			callar(notas_midi[nota_actual]);
-			nota_actual=-1;
+		if (!bSuccess) //if not success, break loop
+		{
+		     cout << "Cannot read a frame from video stream" << endl;
+		     break;
 		}
-		
-		rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
-	}
-	//Image to projector
-	imshow("cortado", cropped);
 
-	resize(gray_image,gray_image,Size(1280,400));
-	imshow("Gris", gray_image);
-	
-	putText(nota, n, Point2f(10,390), FONT_HERSHEY_DUPLEX, 18, Scalar(255,255,255,255),7);
-	imshow("Nota actual", nota);
+		cvtColor( frame, gray_image, CV_BGR2GRAY );
+		createTrackbar( modalidad,window_name, &tipo_modalidad,1, cambio_modalidad );
+		createTrackbar( trackbar_value,window_name, &threshold_value,max_value, Threshold_Demo );
+
+		//opciones para cambiar configuración
+		  
+		Threshold_Demo(0,0);
+		int key=waitKey(30);
+		bool end=false;
+		leer_teclas(key,end,dWidth,dHeight);
 		
-	}//end while
-	callar_todo();
-	cerrar();
-	delete midiout;
-	return 0;
+		if (end) break;
+
+		cv::Mat source = dst;
+		// Setup a rectangle to define your region of interest
+		//cout<<v1_x<<","<< h1_y<<","<< v2_x<<","<< h2_y<<endl;
+		cv::Rect myROI(v1_x, h1_y, v2_x-v1_x, h2_y-h1_y);
+		// Crop the full image to that image contained by the rectangle myROI
+		// Note that this doesn't copy the data
+		cv::Mat croppedRef(source, myROI);
+		// Copy the data into new matrix
+		croppedRef.copyTo(cropped);
+		///////////////////////// DRAW LINES
+
+		draw_lines(dWidth, dHeight);
+
+		///////////////////////// PATTERN MATCHING
+		
+		if ((cropped.depth() == CV_8U || cropped.depth() == CV_32F) && cropped.type() == templ2.type()){
+			matchTemplate(cropped, templ2, result, 0);
+			//tomado de http://docs.opencv.org/doc/tutorials/imgproc/histograms/template_matching/template_matching.html
+			normalize( result, result, 0, 1, NORM_MINMAX, -1, Mat() );
+			double minVal; double maxVal; Point minLoc; Point maxLoc;
+			Point matchLoc;
+			minMaxLoc( result, &minVal, &maxVal, &minLoc, &maxLoc, Mat() );
+			
+			matchLoc = minLoc;
+			Size s = cropped.size();
+			Hcropped = s.height;
+			Wcropped = s.width;
+			//dibujar las líneas para mostrar las fronteras de los tonos discretos
+			//if (!cont) dibujar_semitonos(semitonos,Wcropped,Hcropped);
+			if (!cont) dibujar_semitonos(semitonos,gray_image.size().width,gray_image.size().height);
+
+			Mat roi(cropped, Rect(matchLoc.x , matchLoc.y, templ2.cols , templ2.rows));
+			
+			imshow("template encontrado", roi);
+			if (negro(roi)&&!linea || (linea&&haylinea(roi))){ //encontré la mancha, mandar coordenada
+				//cout<<Wcropped<<" ";
+				//cout<<"detected:"<<matchLoc.x<<","<<matchLoc.y<<endl;
+				tocar_nota(matchLoc.x,Wcropped);
+			}else{ //no se encontro nada, callar
+				//cout<<"callando"<<endl;
+				callar(notas_midi[nota_actual]);
+				nota_actual=-1;
+			}
+			
+			rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
+		}
+		//Image to projector
+		imshow("cortado", cropped);
+
+		resize(gray_image,gray_image,Size(1280,400));
+		imshow("Gris", gray_image);
+		
+		putText(nota, n, Point2f(10,430), FONT_HERSHEY_DUPLEX, 18, Scalar(255,255,255,255),7);
+		imshow("Nota actual", nota);
+			
+		}//end while
+		callar_todo();
+		cerrar();
+		delete midiout;
+		return 0;
 
 }//end main
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
