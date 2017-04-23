@@ -18,7 +18,6 @@ int threshold_type = 3;;
 int const max_value = 255;
 int const max_type = 4;
 int const max_BINARY_value = 255;
-bool animar=true;
 bool processing=false;
 bool cromatica=false;
 
@@ -46,6 +45,7 @@ Mat result; //imagen con la mancha procesada
 Mat proj; //imagen a proyectar en el edificio
 int camara=0; //default es la camara de la compu
 
+bool haylinea(Mat roi);
 bool negro(Mat roi);
 void Threshold_Demo( int, void* );
 void draw_lines(double dWidth, double dHeight);
@@ -55,6 +55,7 @@ bool isInteger(const std::string & s);
 RtMidiOut *midiout;
 int xviejo;
 bool cont=false;
+bool linea=false;
 void init_midi();
 void play(int nota);
 void play_bend(int nota,int msb, int lsb, bool nueva);
@@ -136,7 +137,7 @@ int main(int argc, char* argv[]){
 			cout<<"opciones: "<<endl;
 			cout<<"  webcam: si hay otra cámara, aveces se enreda entre la de usb y del laptop"<<endl;
 			cout<<"  continuo: modo continuo, hay pulgas pues toca pocos semitonos"<<endl;
-			cout<<"  noscroll: no hay animación de líneas, para ahorrar procesamiento"<<endl;
+			cout<<"  linea: detectar reflejo de la mano en vez de obstrucción del laser"<<endl;
 			cout<<"  número: fija el número de notas totals, siendo el máximo 15"<<endl;
 			cout<<"  cromatica: fija una escala cromatica y no diatonica"<<endl;
 			cout<<endl<<"Ejemplo: ./d2 12 noscroll     <--causa 12 notas máximo, sin scroll"<<endl;
@@ -165,6 +166,10 @@ int main(int argc, char* argv[]){
 			camara=1;//usaremos la webcam, siempre es bueno tener dos opciones
 			cout<<argv[j]<<" activada"<<endl;
 		}
+		if (strcmp(argv[j],"linea")==0){ // deteccion de linea
+			linea=true;//usaremos el modo continuo
+			cout<<"modo linea activado"<<endl;
+		}
 		if (strcmp(argv[j],"continuo")==0){ // de lo contrario es pintar
 			cont=true;//usaremos el modo continuo
 			cout<<"modo continuo activado"<<endl;
@@ -173,10 +178,6 @@ int main(int argc, char* argv[]){
 			processing=true;
 			abrir(5204);
 			cout<<"animación de processing desactivada"<<endl;
-		}
-		if (strcmp(argv[j],"noscroll")==0){ // no habrá scrolling de las líneas para que corra un poco más rápido
-			animar=false;
-			cout<<"animación de líneas desactivada"<<endl;
 		}
 		if (isInteger(argv[j])){
 			semitonos=atoi(argv[j]);
@@ -210,7 +211,11 @@ int main(int argc, char* argv[]){
     	{
 		Mat frame;
 
+  double t = (double)cv::getTickCount();
+
 		bool bSuccess = cap.read(frame); // read a new frame from video
+
+
 
 		if (!bSuccess) //if not success, break loop
 		{
@@ -267,20 +272,17 @@ int main(int argc, char* argv[]){
 			Mat roi(cropped, Rect(matchLoc.x , matchLoc.y, templ2.cols , templ2.rows));
 			
 			imshow("template encontrado", roi);
-			if (negro(roi)){ //encontré la mancha, mandar coordenada
+			if (negro(roi)&&!linea || (linea&&haylinea(roi))){ //encontré la mancha, mandar coordenada
 				//cout<<Wcropped<<" ";
 				//cout<<"detected:"<<matchLoc.x<<","<<matchLoc.y<<endl;
 				tocar_nota(matchLoc.x,Wcropped);
 			}else{ //no se encontro nada, callar
+				//cout<<"callando"<<endl;
 				callar(notas_midi[nota_actual]);
 				nota_actual=-1;
 			}
 			
 			rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
-		}
-		//scroll
-		if (animar) {
-			scroll();
 		}
 		//Image to projector
 		imshow("cortado", cropped);
@@ -288,9 +290,6 @@ int main(int argc, char* argv[]){
 		
 		resize(gray_image,gray_image,Size(1280,400));
 		imshow("Gris", gray_image);
-		if (animar){
-			imshow("edificio", proj);
-		}
 	}//end while
 	callar_todo();
 	cerrar();
@@ -299,11 +298,25 @@ int main(int argc, char* argv[]){
 
 }//end main
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-void scroll(){
-	proj(Rect(0,3,proj.cols,proj.rows-3)).copyTo(proj(Rect(0,0,proj.cols,proj.rows-3)));
-	//y borro la última línea
-	line(proj, Point(0,proj.rows), Point(proj.cols,proj.rows), Scalar(0,0,0 ),2,8);
+bool haylinea(Mat roi){
+	//float threshold=0.36; //cuánto negro es suficiente
+	float threshold=0.02;
+	Size s=roi.size();
+	float numero=0;
+	for (int i=0;i<s.height;i++){
+		for (int j=0;j<s.width;j++){
+			uchar item=roi.at<uchar>(i,j);
+			if (item>200 ) numero++;
+			//cout<<(int)item<<",";
+		}
+		//cout<<endl;
+	}
+//	cout<<"  "<<numero<<" de "<< s.width*s.height<<endl;
+//	cout<<roi<<endl;
+	if (numero/float(s.width*s.height)>threshold) return true;
+	return false;
 }
+
 bool negro(Mat roi){
 	float threshold=0.96; //cuánto negro es suficiente
 	Size s=roi.size();
@@ -438,20 +451,20 @@ void MyLine( Mat img, Point start, Point end ){
 void inicializar_pantallas(void){
 	//preparar la plantilla
 	templ=imread("template2.png",1);
-	if(animar) namedWindow("template", CV_WINDOW_AUTOSIZE);
 	//imshow("template", templ);
 	cvtColor( templ, templ, CV_BGR2GRAY );
 	
 	//plantilla para el lumint mancha oscura
-	templ2=imread("template4.png",1);
-	if(animar) namedWindow("template2", CV_WINDOW_AUTOSIZE);
+	if (!linea){
+		templ2=imread("template4.png",1);
+	}else{//buscar la linea
+		templ2=imread("punto.png",1);
+	}
+
 	//imshow("template2", templ2);
 	cvtColor( templ2, templ2, CV_BGR2GRAY );
 	
-	if(animar) namedWindow("template encontrado", CV_WINDOW_AUTOSIZE);
 	//preparar el proyector
-	if(animar) cvNamedWindow("edificio", CV_WINDOW_NORMAL);
-	if(animar) cvSetWindowProperty("edificio", CV_WND_PROP_FULLSCREEN, CV_WINDOW_FULLSCREEN);
 	proj = Mat(400,720, CV_64F, cvScalar(0.));
 }
 void leer_teclas(int tecla, bool &bandera, double &dWidth, double &dHeight){
