@@ -278,7 +278,7 @@ int main(int argc, char* argv[]){
 			}
 			
 			rectangle( cropped, matchLoc, Point( matchLoc.x + templ2.cols , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
-			rectangle( gray_image, Point(matchLoc.x+v1_x,matchLoc.y), Point( matchLoc.x + templ2.cols+v1_x , matchLoc.y + templ2.rows ), Scalar(255,0,0), 2, 8, 0 );
+			rectangle( gray_image, Point(matchLoc.x+v1_x,matchLoc.y+h1_y), Point( matchLoc.x + templ2.cols+v1_x , matchLoc.y + templ2.rows +h1_y), Scalar(255,0,0), 2, 8, 0 );
 		}
 		//Image to projector
 		imshow("cortado", cropped);
@@ -357,13 +357,17 @@ void draw_lines(double dWidth, double dHeight){
 
 void dibujar_semitonos(int numero, int ancho, int alto){
 	int x;
+	//dibuja las lineas
 	Point p1,p2;
 	for (x=v1_x;x<ancho+v1_x;x+=ancho/numero){
 		p1=Point(x,0);
 		p2=Point(x,alto);
 		//MyLine(cropped,p1,p2);//cropped es para la imagen pequeña
 		MyLine(gray_image,p1,p2);
+		//escribe las notas en gray_image
+		putText(gray_image, n, Point(x+1,alto-1), FONT_HERSHEY_PLAIN, 1, Scalar(255,255,255,255),1);
 	}
+	
 }
 
 void Threshold_Demo( int, void* ){
