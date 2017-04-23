@@ -271,9 +271,12 @@ int main(int argc, char* argv[]){
 				//cout<<Wcropped<<" ";
 				//cout<<"detected:"<<matchLoc.x<<","<<matchLoc.y<<endl;
 				tocar_nota(matchLoc.x,Wcropped);
+				//muestra la nota actual
+				putText(nota, n, Point2f(10,430), FONT_HERSHEY_DUPLEX, 18, Scalar(255,255,255,255),7);
 			}else{ //no se encontro nada, callar
 				//cout<<"callando"<<endl;
 				callar(notas_midi[nota_actual]);
+				nota=Scalar(0,0,0);
 				nota_actual=-1;
 			}
 			
@@ -286,14 +289,13 @@ int main(int argc, char* argv[]){
 		resize(gray_image,gray_image,Size(1280,400));
 		imshow("Gris", gray_image);
 		
-		putText(nota, n, Point2f(10,430), FONT_HERSHEY_DUPLEX, 18, Scalar(255,255,255,255),7);
 		imshow("Nota actual", nota);
 			
-		}//end while
-		callar_todo();
-		cerrar();
-		delete midiout;
-		return 0;
+	}//end while
+	callar_todo();
+	cerrar();
+	delete midiout;
+	return 0;
 
 }//end main
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -357,15 +359,19 @@ void draw_lines(double dWidth, double dHeight){
 
 void dibujar_semitonos(int numero, int ancho, int alto){
 	int x;
+	int i=0;
 	//dibuja las lineas
 	Point p1,p2;
+	char m[5];
 	for (x=v1_x;x<ancho+v1_x;x+=ancho/numero){
 		p1=Point(x,0);
 		p2=Point(x,alto);
 		//MyLine(cropped,p1,p2);//cropped es para la imagen pequeña
 		MyLine(gray_image,p1,p2);
 		//escribe las notas en gray_image
-		putText(gray_image, n, Point(x+1,alto-1), FONT_HERSHEY_PLAIN, 1, Scalar(255,255,255,255),1);
+		string nota=imprimir_nota(notas_midi[i++]);	
+		strcpy(m,nota.c_str());
+		putText(gray_image, m, Point(x+1,alto-1), FONT_HERSHEY_PLAIN, 1, Scalar(255,255,255,255),1);
 	}
 	
 }
@@ -403,13 +409,13 @@ void init_midi()
 	  delete midiout;
 }
 
-void play(int nota){
+void play(int lanota){
 	message[0] = 144;//encender nota en canal 1
-	message[1] = nota;
+	message[1] = lanota;
 	message[2] = 90;
 	midiout->sendMessage( &message );
-	cout<<"tocando la nota "<<nota<<"  "<<endl;
-	fijarNota(nota);
+	cout<<"tocando la nota "<<lanota<<"  "<<endl;
+	fijarNota(lanota);
 }
 void fijarNota(int nota){
 	switch(nota%12){
